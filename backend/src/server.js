@@ -1,8 +1,12 @@
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
+const connectDB = require('./config/db');
 
 const app = express();
+
+// Database Connection
+connectDB();
 
 // Middlewares
 app.use(cors());
@@ -13,6 +17,7 @@ app.get('/api/health', (req, res) => {
   res.status(200).json({
     status: 'success',
     message: 'किसान साथी बिहार API चालू है 🌾',
+    database: 'Connected',
     timestamp: new Date().toISOString()
   });
 });
