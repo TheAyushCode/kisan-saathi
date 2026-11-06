@@ -6,6 +6,7 @@ const connectDB = require('./config/db');
 // Route Files
 const machineRoutes = require('./routes/machineRoutes');
 const storageRoutes = require('./routes/storageRoutes');
+const bookingRoutes = require('./routes/bookingRoutes');
 
 const app = express();
 
@@ -19,6 +20,7 @@ app.use(express.json());
 // Mount Routes
 app.use('/api/machines', machineRoutes);
 app.use('/api/storage', storageRoutes);
+app.use('/api/bookings', bookingRoutes);
 
 // Health Check Route
 app.get('/api/health', (req, res) => {

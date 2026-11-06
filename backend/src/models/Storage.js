@@ -30,7 +30,16 @@ const storageSchema = new mongoose.Schema({
   },
   suitableForCrops: [{
     type: String,
-    enum: ['आलू (Potato)', 'मखाना (Makhana)', 'लीची (Litchi)', 'मक्का (Maize)', 'धान/चावल (Paddy/Rice)', 'गेहूँ (Wheat)', 'प्याज (Onion)']
+    enum: [
+      'आलू (Potato)', 
+      'मखाना (Makhana)', 
+      'लीची (Litchi)', 
+      'मक्का (Maize)', 
+      'धान/चावल (Paddy/Rice)', 
+      'गेहूँ (Wheat)', 
+      'प्याज (Onion)', 
+      'सब्जियाँ (Vegetables)'
+    ]
   }],
   temperatureRange: {
     type: String,
