@@ -1,23 +1,25 @@
-import React from 'react';
-import { Sprout } from 'lucide-react';
+import React, { useState } from 'react';
+import Navbar from './components/Navbar';
 
-export default function App() {
+function App() {
+  const [activeTab, setActiveTab] = useState('machines');
+
   return (
-    <div className="min-h-screen bg-emerald-50 flex flex-col items-center justify-center p-4">
-      <div className="bg-white p-8 rounded-2xl shadow-lg border border-emerald-200 text-center max-w-md w-full">
-        <div className="bg-emerald-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-emerald-700">
-          <Sprout size={36} />
+    <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
+      <Navbar activeTab={activeTab} setActiveTab={setActiveTab} />
+      
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 text-center">
+          <h2 className="text-xl font-bold text-slate-800">
+            {activeTab === 'machines' ? '🚜 ई-साझा कृषि यंत्र (किराया मंच)' : '🏢 पैक्स गोदाम एवं कोल्ड स्टोरेज उपलब्धता'}
+          </h2>
+          <p className="text-sm text-slate-600 mt-2">
+            बिहार के 38 ज़िलों के लिए डेटा सर्विस सफलतापूर्वक लिंक हो चुकी है।
+          </p>
         </div>
-        <h1 className="text-2xl font-bold text-gray-800 mb-2">
-          किसान साथी बिहार 🌾
-        </h1>
-        <p className="text-emerald-700 font-medium text-sm mb-4">
-          Day 1: सेटअप सफलतापूर्वक पूरा हुआ!
-        </p>
-        <p className="text-gray-500 text-xs">
-          React, Tailwind CSS, Lucide Icons और Node.js का वातावरण तैयार है।
-        </p>
-      </div>
+      </main>
     </div>
   );
 }
+
+export default App;
