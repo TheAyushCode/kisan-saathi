@@ -4,14 +4,15 @@ import MachineCard from './components/MachineCard';
 import StorageCard from './components/StorageCard';
 import FilterBar from './components/FilterBar';
 import BookingModal from './components/BookingModal';
+import MyBookings from './components/MyBookings';
 import { fetchMachines, fetchStorage } from './services/api';
 import { Loader2, CheckCircle2 } from 'lucide-react';
 
 function App() {
-  const [activeTab, setActiveTab] = useState('machines');
+  const [activeTab, setActiveTab] = useState('machines'); // 'machines' | 'storage' | 'my-bookings'
   const [machines, setMachines] = useState([]);
   const [storages, setStorages] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   // फ़िल्टर स्टेट्स
@@ -20,11 +21,13 @@ function App() {
 
   // बुकिंग मॉडल स्टेट्स
   const [selectedItemForBooking, setSelectedItemForBooking] = useState(null);
-  const [bookingType, setBookingType] = useState('machine'); // 'machine' | 'storage'
+  const [bookingType, setBookingType] = useState('machine');
   const [successToast, setSuccessToast] = useState('');
 
   useEffect(() => {
-    loadData();
+    if (activeTab !== 'my-bookings') {
+      loadData();
+    }
   }, [activeTab, selectedDistrict, selectedCategory]);
 
   const loadData = async () => {
@@ -38,7 +41,7 @@ function App() {
       if (activeTab === 'machines') {
         const res = await fetchMachines(params);
         setMachines(res.data || []);
-      } else {
+      } else if (activeTab === 'storage') {
         const res = await fetchStorage(params);
         setStorages(res.data || []);
       }
@@ -99,79 +102,81 @@ function App() {
           </div>
         )}
 
-        {/* Banner Section */}
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-800">
-              {activeTab === 'machines'
-                ? '🚜 ई-साझा कृषि यंत्र (किराया मंच)'
-                : '🏢 पैक्स गोदाम एवं शीतगृह (कोल्ड स्टोरेज)'}
-            </h1>
-            <p className="text-sm text-slate-600 mt-1">
-              बिहार के 38 ज़िलों के किसानों के लिए सीधी बुकिंग व पारदर्शी दरें (कट्ठा / बीघा / क्विंटल)
-            </p>
-          </div>
-          <button
-            onClick={loadData}
-            className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg border border-slate-300 font-medium"
-          >
-            रिफ्रेश करें 🔄
-          </button>
-        </div>
+        {/* View 1: My Bookings Dashboard */}
+        {activeTab === 'my-bookings' && <MyBookings />}
 
-        {/* फ़िल्टर बार */}
-        <FilterBar
-          activeTab={activeTab}
-          selectedDistrict={selectedDistrict}
-          setSelectedDistrict={setSelectedDistrict}
-          selectedCategory={selectedCategory}
-          setSelectedCategory={setSelectedCategory}
-          onReset={handleResetFilters}
-        />
+        {/* View 2: Machines / Storage Marketplace */}
+        {activeTab !== 'my-bookings' && (
+          <>
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div>
+                <h1 className="text-2xl font-bold text-slate-800">
+                  {activeTab === 'machines'
+                    ? '🚜 ई-साझा कृषि यंत्र (किराया मंच)'
+                    : '🏢 पैक्स गोदाम एवं शीतगृह (कोल्ड स्टोरेज)'}
+                </h1>
+                <p className="text-sm text-slate-600 mt-1">
+                  बिहार के 38 ज़िलों के किसानों के लिए सीधी बुकिंग व पारदर्शी दरें (कट्ठा / बीघा / क्विंटल)
+                </p>
+              </div>
+              <button
+                onClick={loadData}
+                className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg border border-slate-300 font-medium"
+              >
+                रिफ्रेश करें 🔄
+              </button>
+            </div>
 
-        {/* Loading & Error States */}
-        {loading && (
-          <div className="flex flex-col items-center justify-center py-16 text-slate-500">
-            <Loader2 className="w-8 h-8 animate-spin text-emerald-700 mb-2" />
-            <p className="text-sm">डेटा खोजा जा रहा है...</p>
-          </div>
-        )}
+            <FilterBar
+              activeTab={activeTab}
+              selectedDistrict={selectedDistrict}
+              setSelectedDistrict={setSelectedDistrict}
+              selectedCategory={selectedCategory}
+              setSelectedCategory={setSelectedCategory}
+              onReset={handleResetFilters}
+            />
 
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl text-center text-sm mb-6">
-            {error}
-          </div>
-        )}
+            {loading && (
+              <div className="flex flex-col items-center justify-center py-16 text-slate-500">
+                <Loader2 className="w-8 h-8 animate-spin text-emerald-700 mb-2" />
+                <p className="text-sm">डेटा खोजा जा रहा है...</p>
+              </div>
+            )}
 
-        {/* Empty States */}
-        {!loading && !error && activeTab === 'machines' && machines.length === 0 && (
-          <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center text-slate-500">
-            चुने गए फ़िल्टर के अनुसार कोई कृषि यंत्र उपलब्ध नहीं मिला। कृपया दूसरा ज़िला या श्रेणी चुनें।
-          </div>
-        )}
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl text-center text-sm mb-6">
+                {error}
+              </div>
+            )}
 
-        {!loading && !error && activeTab === 'storage' && storages.length === 0 && (
-          <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center text-slate-500">
-            चुने गए फ़िल्टर के अनुसार कोई गोदाम/कोल्ड स्टोरेज उपलब्ध नहीं मिला। कृपया दूसरा ज़िला चुनें।
-          </div>
-        )}
+            {!loading && !error && activeTab === 'machines' && machines.length === 0 && (
+              <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center text-slate-500">
+                चुने गए फ़िल्टर के अनुसार कोई कृषि यंत्र उपलब्ध नहीं मिला। कृपया दूसरा ज़िला या श्रेणी चुनें।
+              </div>
+            )}
 
-        {/* Machines Grid */}
-        {!loading && !error && activeTab === 'machines' && machines.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {machines.map((machine) => (
-              <MachineCard key={machine._id} machine={machine} onBook={handleMachineBook} />
-            ))}
-          </div>
-        )}
+            {!loading && !error && activeTab === 'storage' && storages.length === 0 && (
+              <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center text-slate-500">
+                चुने गए फ़िल्टर के अनुसार कोई गोदाम/कोल्ड स्टोरेज उपलब्ध नहीं मिला। कृपया दूसरा ज़िला चुनें।
+              </div>
+            )}
 
-        {/* Storage Grid */}
-        {!loading && !error && activeTab === 'storage' && storages.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {storages.map((storage) => (
-              <StorageCard key={storage._id} storage={storage} onBook={handleStorageBook} />
-            ))}
-          </div>
+            {!loading && !error && activeTab === 'machines' && machines.length > 0 && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {machines.map((machine) => (
+                  <MachineCard key={machine._id} machine={machine} onBook={handleMachineBook} />
+                ))}
+              </div>
+            )}
+
+            {!loading && !error && activeTab === 'storage' && storages.length > 0 && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {storages.map((storage) => (
+                  <StorageCard key={storage._id} storage={storage} onBook={handleStorageBook} />
+                ))}
+              </div>
+            )}
+          </>
         )}
       </main>
 

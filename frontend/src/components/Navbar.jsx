@@ -1,5 +1,5 @@
 import React from 'react';
-import { Tractor, Warehouse, PhoneCall, Sprout } from 'lucide-react';
+import { Tractor, Warehouse, PhoneCall, Sprout, ClipboardList } from 'lucide-react';
 
 const Navbar = ({ activeTab, setActiveTab }) => {
   return (
@@ -21,10 +21,10 @@ const Navbar = ({ activeTab, setActiveTab }) => {
           </div>
 
           {/* Navigation Buttons */}
-          <nav className="flex space-x-2 sm:space-x-4">
+          <nav className="flex space-x-2 sm:space-x-3">
             <button
               onClick={() => setActiveTab('machines')}
-              className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+              className={`flex items-center space-x-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                 activeTab === 'machines'
                   ? 'bg-emerald-950 text-amber-300 shadow-inner'
                   : 'text-emerald-100 hover:bg-emerald-700'
@@ -36,7 +36,7 @@ const Navbar = ({ activeTab, setActiveTab }) => {
 
             <button
               onClick={() => setActiveTab('storage')}
-              className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+              className={`flex items-center space-x-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                 activeTab === 'storage'
                   ? 'bg-emerald-950 text-amber-300 shadow-inner'
                   : 'text-emerald-100 hover:bg-emerald-700'
@@ -45,12 +45,24 @@ const Navbar = ({ activeTab, setActiveTab }) => {
               <Warehouse className="w-4 h-4" />
               <span>पैक्स व शीतगृह</span>
             </button>
+
+            <button
+              onClick={() => setActiveTab('my-bookings')}
+              className={`flex items-center space-x-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                activeTab === 'my-bookings'
+                  ? 'bg-emerald-950 text-amber-300 shadow-inner'
+                  : 'text-emerald-100 hover:bg-emerald-700'
+              }`}
+            >
+              <ClipboardList className="w-4 h-4" />
+              <span>मेरी बुकिंग्स</span>
+            </button>
           </nav>
 
           {/* Helpline Indicator */}
-          <div className="hidden md:flex items-center space-x-2 text-xs bg-emerald-700/60 border border-emerald-600 px-3 py-1.5 rounded-full">
+          <div className="hidden lg:flex items-center space-x-2 text-xs bg-emerald-700/60 border border-emerald-600 px-3 py-1.5 rounded-full">
             <PhoneCall className="w-3.5 h-3.5 text-amber-300" />
-            <span>किसान कॉल सेंटर: 1800-180-1551</span>
+            <span>कॉल सेंटर: 1800-180-1551</span>
           </div>
         </div>
       </div>

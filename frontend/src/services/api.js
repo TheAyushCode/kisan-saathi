@@ -4,7 +4,7 @@ const API = axios.create({
   baseURL: 'http://localhost:5000/api',
 });
 
-// कृषि मशीनें प्राप्त करें (जिले और प्रकार के फ़िल्टर के साथ)
+// कृषि मशीनें प्राप्त करें
 export const fetchMachines = async (params = {}) => {
   const response = await API.get('/machines', { params });
   return response.data;
@@ -19,6 +19,12 @@ export const fetchStorage = async (params = {}) => {
 // नई बुकिंग दर्ज करें
 export const createBooking = async (bookingData) => {
   const response = await API.post('/bookings', bookingData);
+  return response.data;
+};
+
+// सभी बुकिंग्स प्राप्त करें
+export const fetchBookings = async () => {
+  const response = await API.get('/bookings');
   return response.data;
 };
 
