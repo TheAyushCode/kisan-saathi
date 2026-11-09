@@ -28,4 +28,16 @@ export const fetchBookings = async () => {
   return response.data;
 };
 
+// 1. नया कृषि यंत्र जोड़ें
+export const createMachine = async (machineData) => {
+  const response = await API.post('/machines', machineData);
+  return response.data;
+};
+
+// 2. नया पैक्स / स्टोरेज जोड़ें
+export const createStorage = async (storageData) => {
+  const response = await API.post('/storage', storageData);
+  return response.data;
+};
+
 export default API;

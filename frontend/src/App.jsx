@@ -5,11 +5,12 @@ import StorageCard from './components/StorageCard';
 import FilterBar from './components/FilterBar';
 import BookingModal from './components/BookingModal';
 import MyBookings from './components/MyBookings';
+import AddListingModal from './components/AddListingModal';
 import { fetchMachines, fetchStorage } from './services/api';
 import { Loader2, CheckCircle2 } from 'lucide-react';
 
 function App() {
-  const [activeTab, setActiveTab] = useState('machines'); // 'machines' | 'storage' | 'my-bookings'
+  const [activeTab, setActiveTab] = useState('machines');
   const [machines, setMachines] = useState([]);
   const [storages, setStorages] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -19,9 +20,10 @@ function App() {
   const [selectedDistrict, setSelectedDistrict] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
 
-  // बुकिंग मॉडल स्टेट्स
+  // मॉडल्स स्टेट्स
   const [selectedItemForBooking, setSelectedItemForBooking] = useState(null);
   const [bookingType, setBookingType] = useState('machine');
+  const [isAddListingOpen, setIsAddListingOpen] = useState(false);
   const [successToast, setSuccessToast] = useState('');
 
   useEffect(() => {
@@ -70,9 +72,14 @@ function App() {
   const handleBookingSuccess = (itemName) => {
     setSelectedItemForBooking(null);
     setSuccessToast(`बधाई! '${itemName}' के लिए आपका बुकिंग अनुरोध सफलतापूर्वक दर्ज कर लिया गया है।`);
-    setTimeout(() => {
-      setSuccessToast('');
-    }, 5000);
+    setTimeout(() => setSuccessToast(''), 5000);
+  };
+
+  const handleListingSuccess = (msg) => {
+    setIsAddListingOpen(false);
+    setSuccessToast(msg);
+    loadData();
+    setTimeout(() => setSuccessToast(''), 5000);
   };
 
   return (
@@ -83,6 +90,7 @@ function App() {
           setActiveTab(tab);
           handleResetFilters();
         }}
+        onOpenAddListing={() => setIsAddListingOpen(true)}
       />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -187,6 +195,14 @@ function App() {
           type={bookingType}
           onClose={() => setSelectedItemForBooking(null)}
           onSuccess={handleBookingSuccess}
+        />
+      )}
+
+      {/* Add Listing Modal */}
+      {isAddListingOpen && (
+        <AddListingModal
+          onClose={() => setIsAddListingOpen(false)}
+          onSuccess={handleListingSuccess}
         />
       )}
     </div>
