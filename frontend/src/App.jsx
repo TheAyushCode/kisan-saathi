@@ -3,8 +3,9 @@ import Navbar from './components/Navbar';
 import MachineCard from './components/MachineCard';
 import StorageCard from './components/StorageCard';
 import FilterBar from './components/FilterBar';
+import BookingModal from './components/BookingModal';
 import { fetchMachines, fetchStorage } from './services/api';
-import { Loader2 } from 'lucide-react';
+import { Loader2, CheckCircle2 } from 'lucide-react';
 
 function App() {
   const [activeTab, setActiveTab] = useState('machines');
@@ -17,7 +18,11 @@ function App() {
   const [selectedDistrict, setSelectedDistrict] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
 
-  // जब भी टैब, ज़िला या श्रेणी बदले, डेटा दोबारा लोड करें
+  // बुकिंग मॉडल स्टेट्स
+  const [selectedItemForBooking, setSelectedItemForBooking] = useState(null);
+  const [bookingType, setBookingType] = useState('machine'); // 'machine' | 'storage'
+  const [successToast, setSuccessToast] = useState('');
+
   useEffect(() => {
     loadData();
   }, [activeTab, selectedDistrict, selectedCategory]);
@@ -50,29 +55,57 @@ function App() {
   };
 
   const handleMachineBook = (machine) => {
-    alert(`बुकिंग प्रक्रिया: ${machine.name} के लिए मालिक (${machine.ownerPhone}) से संपर्क करें।`);
+    setBookingType('machine');
+    setSelectedItemForBooking(machine);
   };
 
   const handleStorageBook = (storage) => {
-    alert(`गोदाम स्लॉट बुकिंग: ${storage.name} के संचालक (${storage.operatorPhone}) से संपर्क करें।`);
+    setBookingType('storage');
+    setSelectedItemForBooking(storage);
+  };
+
+  const handleBookingSuccess = (itemName) => {
+    setSelectedItemForBooking(null);
+    setSuccessToast(`बधाई! '${itemName}' के लिए आपका बुकिंग अनुरोध सफलतापूर्वक दर्ज कर लिया गया है।`);
+    setTimeout(() => {
+      setSuccessToast('');
+    }, 5000);
   };
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
-      <Navbar 
-        activeTab={activeTab} 
+      <Navbar
+        activeTab={activeTab}
         setActiveTab={(tab) => {
           setActiveTab(tab);
           handleResetFilters();
-        }} 
+        }}
       />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Success Toast */}
+        {successToast && (
+          <div className="mb-6 bg-emerald-600 text-white px-4 py-3 rounded-2xl shadow-lg flex items-center justify-between text-sm animate-in fade-in">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="w-5 h-5 shrink-0" />
+              <span>{successToast}</span>
+            </div>
+            <button
+              onClick={() => setSuccessToast('')}
+              className="text-white/80 hover:text-white text-xs ml-4"
+            >
+              ✕
+            </button>
+          </div>
+        )}
+
         {/* Banner Section */}
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-slate-800">
-              {activeTab === 'machines' ? '🚜 ई-साझा कृषि यंत्र (किराया मंच)' : '🏢 पैक्स गोदाम एवं शीतगृह (कोल्ड स्टोरेज)'}
+              {activeTab === 'machines'
+                ? '🚜 ई-साझा कृषि यंत्र (किराया मंच)'
+                : '🏢 पैक्स गोदाम एवं शीतगृह (कोल्ड स्टोरेज)'}
             </h1>
             <p className="text-sm text-slate-600 mt-1">
               बिहार के 38 ज़िलों के किसानों के लिए सीधी बुकिंग व पारदर्शी दरें (कट्ठा / बीघा / क्विंटल)
@@ -110,7 +143,7 @@ function App() {
           </div>
         )}
 
-        {/* डेटा न मिलने पर मैसेज */}
+        {/* Empty States */}
         {!loading && !error && activeTab === 'machines' && machines.length === 0 && (
           <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center text-slate-500">
             चुने गए फ़िल्टर के अनुसार कोई कृषि यंत्र उपलब्ध नहीं मिला। कृपया दूसरा ज़िला या श्रेणी चुनें।
@@ -141,6 +174,16 @@ function App() {
           </div>
         )}
       </main>
+
+      {/* Booking Modal */}
+      {selectedItemForBooking && (
+        <BookingModal
+          item={selectedItemForBooking}
+          type={bookingType}
+          onClose={() => setSelectedItemForBooking(null)}
+          onSuccess={handleBookingSuccess}
+        />
+      )}
     </div>
   );
 }
