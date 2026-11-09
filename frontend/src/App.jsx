@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import MachineCard from './components/MachineCard';
 import StorageCard from './components/StorageCard';
+import FilterBar from './components/FilterBar';
 import { fetchMachines, fetchStorage } from './services/api';
 import { Loader2 } from 'lucide-react';
 
@@ -12,19 +13,28 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  // फ़िल्टर स्टेट्स
+  const [selectedDistrict, setSelectedDistrict] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('');
+
+  // जब भी टैब, ज़िला या श्रेणी बदले, डेटा दोबारा लोड करें
   useEffect(() => {
     loadData();
-  }, [activeTab]);
+  }, [activeTab, selectedDistrict, selectedCategory]);
 
   const loadData = async () => {
     setLoading(true);
     setError('');
     try {
+      const params = {};
+      if (selectedDistrict) params.district = selectedDistrict;
+      if (selectedCategory) params.type = selectedCategory;
+
       if (activeTab === 'machines') {
-        const res = await fetchMachines();
+        const res = await fetchMachines(params);
         setMachines(res.data || []);
       } else {
-        const res = await fetchStorage();
+        const res = await fetchStorage(params);
         setStorages(res.data || []);
       }
     } catch (err) {
@@ -32,6 +42,11 @@ function App() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleResetFilters = () => {
+    setSelectedDistrict('');
+    setSelectedCategory('');
   };
 
   const handleMachineBook = (machine) => {
@@ -44,11 +59,17 @@ function App() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
-      <Navbar activeTab={activeTab} setActiveTab={setActiveTab} />
+      <Navbar 
+        activeTab={activeTab} 
+        setActiveTab={(tab) => {
+          setActiveTab(tab);
+          handleResetFilters();
+        }} 
+      />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Banner Section */}
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-slate-800">
               {activeTab === 'machines' ? '🚜 ई-साझा कृषि यंत्र (किराया मंच)' : '🏢 पैक्स गोदाम एवं शीतगृह (कोल्ड स्टोरेज)'}
@@ -65,11 +86,21 @@ function App() {
           </button>
         </div>
 
+        {/* फ़िल्टर बार */}
+        <FilterBar
+          activeTab={activeTab}
+          selectedDistrict={selectedDistrict}
+          setSelectedDistrict={setSelectedDistrict}
+          selectedCategory={selectedCategory}
+          setSelectedCategory={setSelectedCategory}
+          onReset={handleResetFilters}
+        />
+
         {/* Loading & Error States */}
         {loading && (
-          <div className="flex flex-col items-center justify-center py-20 text-slate-500">
+          <div className="flex flex-col items-center justify-center py-16 text-slate-500">
             <Loader2 className="w-8 h-8 animate-spin text-emerald-700 mb-2" />
-            <p className="text-sm">डेटा लोड हो रहा है...</p>
+            <p className="text-sm">डेटा खोजा जा रहा है...</p>
           </div>
         )}
 
@@ -79,8 +110,21 @@ function App() {
           </div>
         )}
 
+        {/* डेटा न मिलने पर मैसेज */}
+        {!loading && !error && activeTab === 'machines' && machines.length === 0 && (
+          <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center text-slate-500">
+            चुने गए फ़िल्टर के अनुसार कोई कृषि यंत्र उपलब्ध नहीं मिला। कृपया दूसरा ज़िला या श्रेणी चुनें।
+          </div>
+        )}
+
+        {!loading && !error && activeTab === 'storage' && storages.length === 0 && (
+          <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center text-slate-500">
+            चुने गए फ़िल्टर के अनुसार कोई गोदाम/कोल्ड स्टोरेज उपलब्ध नहीं मिला। कृपया दूसरा ज़िला चुनें।
+          </div>
+        )}
+
         {/* Machines Grid */}
-        {!loading && !error && activeTab === 'machines' && (
+        {!loading && !error && activeTab === 'machines' && machines.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {machines.map((machine) => (
               <MachineCard key={machine._id} machine={machine} onBook={handleMachineBook} />
@@ -89,7 +133,7 @@ function App() {
         )}
 
         {/* Storage Grid */}
-        {!loading && !error && activeTab === 'storage' && (
+        {!loading && !error && activeTab === 'storage' && storages.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {storages.map((storage) => (
               <StorageCard key={storage._id} storage={storage} onBook={handleStorageBook} />
