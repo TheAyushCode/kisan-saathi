@@ -1,6 +1,5 @@
 import axios from 'axios';
 
-// लाइव सर्वर URL या लोकलहोस्ट फ़ॉलबैक
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
 
 const API = axios.create({
@@ -28,6 +27,12 @@ export const createBooking = async (bookingData) => {
 // सभी बुकिंग्स प्राप्त करें
 export const fetchBookings = async () => {
   const response = await API.get('/bookings');
+  return response.data;
+};
+
+// बुकिंग स्थिति अपडेट करें (स्वीकार / रद्द)
+export const updateBookingStatus = async (bookingId, status) => {
+  const response = await API.patch(`/bookings/${bookingId}/status`, { status });
   return response.data;
 };
 

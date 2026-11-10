@@ -1,6 +1,18 @@
 import React, { useState } from 'react';
-import { Search, Calendar, Phone, Clock, CheckCircle2, XCircle, Tractor, Warehouse, AlertCircle } from 'lucide-react';
-import { fetchBookings } from '../services/api';
+import {
+  Search,
+  Calendar,
+  Phone,
+  Clock,
+  CheckCircle2,
+  XCircle,
+  Tractor,
+  Warehouse,
+  AlertCircle,
+  Check,
+  X,
+} from 'lucide-react';
+import { fetchBookings, updateBookingStatus } from '../services/api';
 
 const MyBookings = () => {
   const [phone, setPhone] = useState('');
@@ -8,9 +20,10 @@ const MyBookings = () => {
   const [loading, setLoading] = useState(false);
   const [bookings, setBookings] = useState([]);
   const [error, setError] = useState('');
+  const [actionLoadingId, setActionLoadingId] = useState(null);
 
   const handleSearch = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     if (!phone || phone.trim().length !== 10) {
       setError('कृपया सही 10 अंकों का मोबाइल नंबर दर्ज करें।');
       return;
@@ -22,15 +35,28 @@ const MyBookings = () => {
 
     try {
       const res = await fetchBookings();
-      // किसान के फ़ोन नंबर से फ़िल्टर करें
       const userBookings = (res.data || []).filter(
-        (b) => b.farmerPhone.trim() === phone.trim()
+        (b) => b.farmerPhone && b.farmerPhone.trim() === phone.trim()
       );
       setBookings(userBookings);
     } catch (err) {
       setError('बुकिंग लोड करने में समस्या हुई। कृपया सुनिश्चित करें कि बैकएंड चालू है।');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleStatusChange = async (bookingId, newStatus) => {
+    setActionLoadingId(bookingId);
+    try {
+      await updateBookingStatus(bookingId, newStatus);
+      setBookings((prev) =>
+        prev.map((b) => (b._id === bookingId ? { ...b, status: newStatus } : b))
+      );
+    } catch (err) {
+      alert('स्थिति अपडेट करने में समस्या हुई।');
+    } finally {
+      setActionLoadingId(null);
     }
   };
 
@@ -62,7 +88,6 @@ const MyBookings = () => {
 
   return (
     <div className="space-y-6">
-      {/* Search Header Box */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 max-w-xl mx-auto text-center">
         <h2 className="text-xl font-bold text-slate-800 mb-1">मेरी बुकिंग्स ट्रैक करें</h2>
         <p className="text-xs text-slate-500 mb-5">
@@ -99,7 +124,6 @@ const MyBookings = () => {
         )}
       </div>
 
-      {/* Results Section */}
       {searched && !loading && (
         <div>
           {bookings.length === 0 ? (
@@ -109,7 +133,8 @@ const MyBookings = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {bookings.map((b) => {
-                const isMachine = b.serviceType === 'Machine_Rent';
+                const isMachine =
+                  b.serviceType === 'Machine_Rent' || b.bookingType === 'Machine';
                 const item = isMachine ? b.machineId : b.storageId;
 
                 return (
@@ -120,11 +145,15 @@ const MyBookings = () => {
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex items-center gap-2">
                         <div className="p-2 bg-emerald-50 rounded-xl text-emerald-700">
-                          {isMachine ? <Tractor className="w-5 h-5" /> : <Warehouse className="w-5 h-5" />}
+                          {isMachine ? (
+                            <Tractor className="w-5 h-5" />
+                          ) : (
+                            <Warehouse className="w-5 h-5" />
+                          )}
                         </div>
                         <div>
                           <h3 className="font-bold text-base text-slate-800">
-                            {item?.name || (isMachine ? 'कृषि यंत्र' : 'भंडारण स्लॉट')}
+                            {item?.name || (isMachine ? 'कृषि यंत्र' : 'भंडारण केंद्र')}
                           </h3>
                           <span className="text-xs text-slate-500">
                             {isMachine ? 'यंत्र किराया सेवा' : 'पैक्स / शीतगृह सेवा'}
@@ -143,7 +172,7 @@ const MyBookings = () => {
                         <span className="text-slate-500 block">सेवा प्रारंभ तिथि</span>
                         <span className="font-semibold text-slate-800 flex items-center gap-1 mt-0.5">
                           <Calendar className="w-3 h-3 text-slate-400" />
-                          {new Date(b.startDate).toLocaleDateString('hi-IN')}
+                          {new Date(b.serviceDate || b.startDate).toLocaleDateString('hi-IN')}
                         </span>
                       </div>
                       <div>
@@ -152,8 +181,8 @@ const MyBookings = () => {
                         </span>
                         <span className="font-semibold text-emerald-700">
                           {isMachine
-                            ? `${b.areaInKatha || 'N/A'} कट्ठा`
-                            : `${b.quantityQuintals || 'N/A'} क्विंटल`}
+                            ? `${b.areaInKatha || b.durationOrQuantity || 0} कट्ठा`
+                            : `${b.quantityQuintals || b.durationOrQuantity || 0} क्विंटल`}
                         </span>
                       </div>
                       <div>
@@ -163,6 +192,27 @@ const MyBookings = () => {
                         </span>
                       </div>
                     </div>
+
+                    {b.status === 'Pending' && (
+                      <div className="flex items-center gap-2 pt-2 border-t border-slate-100">
+                        <button
+                          disabled={actionLoadingId === b._id}
+                          onClick={() => handleStatusChange(b._id, 'Confirmed')}
+                          className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold py-2 px-3 rounded-xl flex items-center justify-center gap-1 transition-colors disabled:opacity-50"
+                        >
+                          <Check className="w-4 h-4" />
+                          स्वीकार करें (Accept)
+                        </button>
+                        <button
+                          disabled={actionLoadingId === b._id}
+                          onClick={() => handleStatusChange(b._id, 'Cancelled')}
+                          className="flex-1 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-semibold py-2 px-3 rounded-xl flex items-center justify-center gap-1 transition-colors disabled:opacity-50"
+                        >
+                          <X className="w-4 h-4" />
+                          रद्द करें (Reject)
+                        </button>
+                      </div>
+                    )}
                   </div>
                 );
               })}
