@@ -5,6 +5,7 @@ import StorageCard from './components/StorageCard';
 import FilterBar from './components/FilterBar';
 import BookingModal from './components/BookingModal';
 import MyBookings from './components/MyBookings';
+import OwnerDashboard from './components/OwnerDashboard';
 import AddListingModal from './components/AddListingModal';
 import LandCalculatorModal from './components/LandCalculatorModal';
 import Footer from './components/Footer';
@@ -12,17 +13,15 @@ import { fetchMachines, fetchStorage } from './services/api';
 import { Loader2, CheckCircle2 } from 'lucide-react';
 
 function App() {
-  const [activeTab, setActiveTab] = useState('machines');
+  const [activeTab, setActiveTab] = useState('machines'); // 'machines' | 'storage' | 'my-bookings' | 'owner-dashboard'
   const [machines, setMachines] = useState([]);
   const [storages, setStorages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // फ़िल्टर स्टेट्स
   const [selectedDistrict, setSelectedDistrict] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
 
-  // मॉडल्स स्टेट्स
   const [selectedItemForBooking, setSelectedItemForBooking] = useState(null);
   const [bookingType, setBookingType] = useState('machine');
   const [isAddListingOpen, setIsAddListingOpen] = useState(false);
@@ -30,7 +29,7 @@ function App() {
   const [successToast, setSuccessToast] = useState('');
 
   useEffect(() => {
-    if (activeTab !== 'my-bookings') {
+    if (activeTab === 'machines' || activeTab === 'storage') {
       loadData();
     }
   }, [activeTab, selectedDistrict, selectedCategory]);
@@ -74,7 +73,7 @@ function App() {
 
   const handleBookingSuccess = (itemName) => {
     setSelectedItemForBooking(null);
-    setSuccessToast(`बधाई! '${itemName}' के लिए आपका बुकिंग अनुरोध दर्ज हो गया है।`);
+    setSuccessToast(`बधाई! '${itemName}' के लिए आपका अनुरोध दर्ज हो गया है।`);
     setTimeout(() => setSuccessToast(''), 5000);
   };
 
@@ -98,7 +97,6 @@ function App() {
       />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Success Toast */}
         {successToast && (
           <div className="mb-6 bg-emerald-600 text-white px-4 py-3 rounded-2xl shadow-lg flex items-center justify-between text-sm animate-in fade-in">
             <div className="flex items-center gap-2">
@@ -114,11 +112,14 @@ function App() {
           </div>
         )}
 
-        {/* View 1: My Bookings Dashboard */}
+        {/* View 1: Farmer View */}
         {activeTab === 'my-bookings' && <MyBookings />}
 
-        {/* View 2: Machines / Storage Marketplace */}
-        {activeTab !== 'my-bookings' && (
+        {/* View 2: Owner View */}
+        {activeTab === 'owner-dashboard' && <OwnerDashboard />}
+
+        {/* View 3: Marketplace View */}
+        {(activeTab === 'machines' || activeTab === 'storage') && (
           <>
             <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
@@ -128,7 +129,7 @@ function App() {
                     : '🏢 पैक्स गोदाम एवं शीतगृह (कोल्ड स्टोरेज)'}
                 </h1>
                 <p className="text-sm text-slate-600 mt-1">
-                  बिहार के 38 ज़िलों के किसानों के लिए सीधी बुकिंग व पारदर्शी दरें (कट्ठा / बीघा / क्विंटल)
+                  बिहार के 38 ज़िलों के किसानों के लिए सीधी बुकिंग व पारदर्शी दरें
                 </p>
               </div>
               <button
@@ -163,13 +164,13 @@ function App() {
 
             {!loading && !error && activeTab === 'machines' && machines.length === 0 && (
               <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center text-slate-500">
-                चुने गए फ़िल्टर के अनुसार कोई कृषि यंत्र उपलब्ध नहीं मिला। कृपया दूसरा ज़िला या श्रेणी चुनें।
+                चुने गए फ़िल्टर के अनुसार कोई कृषि यंत्र उपलब्ध नहीं मिला।
               </div>
             )}
 
             {!loading && !error && activeTab === 'storage' && storages.length === 0 && (
               <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center text-slate-500">
-                चुने गए फ़िल्टर के अनुसार कोई गोदाम/कोल्ड स्टोरेज उपलब्ध नहीं मिला। कृपया दूसरा ज़िला चुनें।
+                चुने गए फ़िल्टर के अनुसार कोई गोदाम उपलब्ध नहीं मिला।
               </div>
             )}
 
@@ -192,10 +193,8 @@ function App() {
         )}
       </main>
 
-      {/* Footer */}
       <Footer />
 
-      {/* Modals */}
       {selectedItemForBooking && (
         <BookingModal
           item={selectedItemForBooking}

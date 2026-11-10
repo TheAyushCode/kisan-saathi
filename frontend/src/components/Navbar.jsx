@@ -1,5 +1,5 @@
 import React from 'react';
-import { Tractor, Warehouse, PhoneCall, Sprout, ClipboardList, PlusCircle, Calculator } from 'lucide-react';
+import { Tractor, Warehouse, ClipboardList, PlusCircle, Calculator, ShieldCheck } from 'lucide-react';
 
 const Navbar = ({ activeTab, setActiveTab, onOpenAddListing, onOpenCalculator }) => {
   return (
@@ -12,7 +12,7 @@ const Navbar = ({ activeTab, setActiveTab, onOpenAddListing, onOpenCalculator })
             onClick={() => setActiveTab('machines')}
           >
             <div className="bg-emerald-600 p-2 rounded-xl text-amber-300">
-              <Sprout className="w-5 h-5 sm:w-6 sm:h-6" />
+              <Tractor className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
             <div>
               <span className="text-base sm:text-xl font-bold tracking-tight text-white block">किसान साथी बिहार</span>
@@ -20,47 +20,59 @@ const Navbar = ({ activeTab, setActiveTab, onOpenAddListing, onOpenCalculator })
             </div>
           </div>
 
-          {/* Navigation Buttons */}
-          <nav className="flex space-x-1 sm:space-x-2">
+          {/* Navigation Links */}
+          <nav className="flex space-x-1 sm:space-x-2 overflow-x-auto">
             <button
               onClick={() => setActiveTab('machines')}
-              className={`flex items-center space-x-1.5 px-2.5 sm:px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
+              className={`flex items-center space-x-1 px-2.5 sm:px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors shrink-0 ${
                 activeTab === 'machines'
                   ? 'bg-emerald-950 text-amber-300 shadow-inner'
                   : 'text-emerald-100 hover:bg-emerald-700'
               }`}
             >
               <Tractor className="w-4 h-4" />
-              <span className="hidden sm:inline">कृषि यंत्र</span>
+              <span>कृषि यंत्र</span>
             </button>
 
             <button
               onClick={() => setActiveTab('storage')}
-              className={`flex items-center space-x-1.5 px-2.5 sm:px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
+              className={`flex items-center space-x-1 px-2.5 sm:px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors shrink-0 ${
                 activeTab === 'storage'
                   ? 'bg-emerald-950 text-amber-300 shadow-inner'
                   : 'text-emerald-100 hover:bg-emerald-700'
               }`}
             >
               <Warehouse className="w-4 h-4" />
-              <span className="hidden sm:inline">पैक्स व शीतगृह</span>
+              <span>पैक्स व गोदाम</span>
             </button>
 
             <button
               onClick={() => setActiveTab('my-bookings')}
-              className={`flex items-center space-x-1.5 px-2.5 sm:px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
+              className={`flex items-center space-x-1 px-2.5 sm:px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors shrink-0 ${
                 activeTab === 'my-bookings'
                   ? 'bg-emerald-950 text-amber-300 shadow-inner'
                   : 'text-emerald-100 hover:bg-emerald-700'
               }`}
             >
               <ClipboardList className="w-4 h-4" />
-              <span className="hidden sm:inline">मेरी बुकिंग्स</span>
+              <span>मेरी बुकिंग्स</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('owner-dashboard')}
+              className={`flex items-center space-x-1 px-2.5 sm:px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors shrink-0 ${
+                activeTab === 'owner-dashboard'
+                  ? 'bg-emerald-950 text-amber-300 shadow-inner'
+                  : 'text-emerald-100 hover:bg-emerald-700'
+              }`}
+            >
+              <ShieldCheck className="w-4 h-4 text-amber-400" />
+              <span>मालिक पोर्टल</span>
             </button>
           </nav>
 
           {/* Action Buttons */}
-          <div className="flex items-center space-x-2 sm:space-x-3">
+          <div className="flex items-center space-x-2 shrink-0">
             <button
               onClick={onOpenCalculator}
               title="भूमि मापक कैलकुलेटर"
