@@ -14,7 +14,11 @@ const app = express();
 connectDB();
 
 // Middlewares
-app.use(cors());
+app.use(cors({
+  origin: '*', // प्रोडक्शन में आप यहाँ विशिष्ट डोमेन भी दे सकते हैं
+  methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE'],
+  credentials: true
+}));
 app.use(express.json());
 
 // Mount Routes
@@ -34,5 +38,5 @@ app.get('/api/health', (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`🚀 सर्वर पोर्ट ${PORT} पर चालू है: http://localhost:${PORT}/api/health`);
+  console.log(`🚀 सर्वर पोर्ट ${PORT} पर चालू है`);
 });

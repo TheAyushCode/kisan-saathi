@@ -1,7 +1,10 @@
 import axios from 'axios';
 
+// लाइव सर्वर URL या लोकलहोस्ट फ़ॉलबैक
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+
 const API = axios.create({
-  baseURL: 'http://localhost:5000/api',
+  baseURL: API_BASE_URL,
 });
 
 // कृषि मशीनें प्राप्त करें
@@ -28,13 +31,13 @@ export const fetchBookings = async () => {
   return response.data;
 };
 
-// 1. नया कृषि यंत्र जोड़ें
+// नया कृषि यंत्र जोड़ें
 export const createMachine = async (machineData) => {
   const response = await API.post('/machines', machineData);
   return response.data;
 };
 
-// 2. नया पैक्स / स्टोरेज जोड़ें
+// नया पैक्स / स्टोरेज जोड़ें
 export const createStorage = async (storageData) => {
   const response = await API.post('/storage', storageData);
   return response.data;

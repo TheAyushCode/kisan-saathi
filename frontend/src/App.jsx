@@ -6,6 +6,8 @@ import FilterBar from './components/FilterBar';
 import BookingModal from './components/BookingModal';
 import MyBookings from './components/MyBookings';
 import AddListingModal from './components/AddListingModal';
+import LandCalculatorModal from './components/LandCalculatorModal';
+import Footer from './components/Footer';
 import { fetchMachines, fetchStorage } from './services/api';
 import { Loader2, CheckCircle2 } from 'lucide-react';
 
@@ -24,6 +26,7 @@ function App() {
   const [selectedItemForBooking, setSelectedItemForBooking] = useState(null);
   const [bookingType, setBookingType] = useState('machine');
   const [isAddListingOpen, setIsAddListingOpen] = useState(false);
+  const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
   const [successToast, setSuccessToast] = useState('');
 
   useEffect(() => {
@@ -71,7 +74,7 @@ function App() {
 
   const handleBookingSuccess = (itemName) => {
     setSelectedItemForBooking(null);
-    setSuccessToast(`बधाई! '${itemName}' के लिए आपका बुकिंग अनुरोध सफलतापूर्वक दर्ज कर लिया गया है।`);
+    setSuccessToast(`बधाई! '${itemName}' के लिए आपका बुकिंग अनुरोध दर्ज हो गया है।`);
     setTimeout(() => setSuccessToast(''), 5000);
   };
 
@@ -91,6 +94,7 @@ function App() {
           handleResetFilters();
         }}
         onOpenAddListing={() => setIsAddListingOpen(true)}
+        onOpenCalculator={() => setIsCalculatorOpen(true)}
       />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -188,7 +192,10 @@ function App() {
         )}
       </main>
 
-      {/* Booking Modal */}
+      {/* Footer */}
+      <Footer />
+
+      {/* Modals */}
       {selectedItemForBooking && (
         <BookingModal
           item={selectedItemForBooking}
@@ -198,12 +205,15 @@ function App() {
         />
       )}
 
-      {/* Add Listing Modal */}
       {isAddListingOpen && (
         <AddListingModal
           onClose={() => setIsAddListingOpen(false)}
           onSuccess={handleListingSuccess}
         />
+      )}
+
+      {isCalculatorOpen && (
+        <LandCalculatorModal onClose={() => setIsCalculatorOpen(false)} />
       )}
     </div>
   );
