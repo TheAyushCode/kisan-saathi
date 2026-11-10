@@ -30,7 +30,6 @@ const BookingModal = ({ item, type, onClose, onSuccess }) => {
     setSubmitting(true);
 
     try {
-      // बैकएंड स्कीमा के लिए संख्या तय करें
       const quantityValue = isMachine
         ? (areaInKatha ? Number(areaInKatha) : 1)
         : (quantityQuintals ? Number(quantityQuintals) : 1);
@@ -38,13 +37,11 @@ const BookingModal = ({ item, type, onClose, onSuccess }) => {
       const payload = {
         farmerName,
         farmerPhone,
-        // बैकएंड स्कीमा के ज़रूरी फ़ील्ड्स
-        bookingType: isMachine ? 'Machine' : 'Storage',
+        bookingType: isMachine ? 'Machine_Rent' : 'Storage_Space',
         serviceType: isMachine ? 'Machine_Rent' : 'Storage_Space',
         serviceDate: startDate,
         startDate: startDate,
         durationOrQuantity: quantityValue,
-        // आईडी एवं अतिरिक्त माप फ़ील्ड्स
         itemId: item._id,
         machineId: isMachine ? item._id : undefined,
         storageId: !isMachine ? item._id : undefined,
@@ -64,7 +61,6 @@ const BookingModal = ({ item, type, onClose, onSuccess }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
       <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 relative animate-in fade-in duration-200">
-        {/* Close Button */}
         <button
           onClick={onClose}
           className="absolute top-5 right-5 text-slate-400 hover:text-slate-700 bg-slate-100 p-1.5 rounded-full transition-colors"
@@ -72,7 +68,6 @@ const BookingModal = ({ item, type, onClose, onSuccess }) => {
           <X className="w-5 h-5" />
         </button>
 
-        {/* Modal Header */}
         <div className="mb-5">
           <span className="text-xs font-semibold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md">
             {isMachine ? 'कृषि यंत्र बुकिंग' : 'गोदाम स्लॉट बुकिंग'}
@@ -89,7 +84,6 @@ const BookingModal = ({ item, type, onClose, onSuccess }) => {
           </div>
         )}
 
-        {/* Booking Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5 mb-1">
