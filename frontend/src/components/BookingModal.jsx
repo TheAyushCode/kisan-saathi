@@ -30,20 +30,26 @@ const BookingModal = ({ item, type, onClose, onSuccess }) => {
     setSubmitting(true);
 
     try {
+      // बैकएंड स्कीमा के लिए संख्या तय करें
+      const quantityValue = isMachine
+        ? (areaInKatha ? Number(areaInKatha) : 1)
+        : (quantityQuintals ? Number(quantityQuintals) : 1);
+
       const payload = {
         farmerName,
         farmerPhone,
+        // बैकएंड स्कीमा के ज़रूरी फ़ील्ड्स
+        bookingType: isMachine ? 'Machine' : 'Storage',
         serviceType: isMachine ? 'Machine_Rent' : 'Storage_Space',
-        startDate,
-        ...(isMachine
-          ? {
-              machineId: item._id,
-              areaInKatha: areaInKatha ? Number(areaInKatha) : undefined,
-            }
-          : {
-              storageId: item._id,
-              quantityQuintals: quantityQuintals ? Number(quantityQuintals) : undefined,
-            }),
+        serviceDate: startDate,
+        startDate: startDate,
+        durationOrQuantity: quantityValue,
+        // आईडी एवं अतिरिक्त माप फ़ील्ड्स
+        itemId: item._id,
+        machineId: isMachine ? item._id : undefined,
+        storageId: !isMachine ? item._id : undefined,
+        areaInKatha: isMachine && areaInKatha ? Number(areaInKatha) : undefined,
+        quantityQuintals: !isMachine && quantityQuintals ? Number(quantityQuintals) : undefined,
       };
 
       await createBooking(payload);
