@@ -1,50 +1,64 @@
 const mongoose = require('mongoose');
 
-const bookingSchema = new mongoose.Schema({
-  farmerName: {
-    type: String,
-    required: true
+const bookingSchema = new mongoose.Schema(
+  {
+    farmerName: {
+      type: String,
+      required: [true, 'किसान का नाम आवश्यक है'],
+      trim: true,
+    },
+    farmerPhone: {
+      type: String,
+      required: [true, 'मोबाइल नंबर आवश्यक है'],
+      trim: true,
+    },
+    bookingType: {
+      type: String,
+      default: 'Machine',
+    },
+    serviceType: {
+      type: String,
+      default: 'Machine_Rent',
+    },
+    serviceDate: {
+      type: Date,
+      default: Date.now,
+    },
+    startDate: {
+      type: Date,
+      default: Date.now,
+    },
+    durationOrQuantity: {
+      type: Number,
+      default: 1,
+    },
+    machineId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Machine',
+      required: false,
+    },
+    storageId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Storage',
+      required: false,
+    },
+    areaInKatha: {
+      type: Number,
+      default: 0,
+    },
+    quantityQuintals: {
+      type: Number,
+      default: 0,
+    },
+    status: {
+      type: String,
+      enum: ['Pending', 'Confirmed', 'Cancelled'],
+      default: 'Pending',
+    },
   },
-  farmerPhone: {
-    type: String,
-    required: true
-  },
-  bookingType: {
-    type: String,
-    required: true,
-    enum: ['machine', 'storage']
-  },
-  machineId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Machine',
-    default: null
-  },
-  storageId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Storage',
-    default: null
-  },
-  serviceDate: {
-    type: Date,
-    required: true
-  },
-  durationOrQuantity: {
-    type: String,
-    required: true // उदाहरण: '4 घंटे' या '50 क्विंटल'
-  },
-  status: {
-    type: String,
-    enum: ['Pending', 'Confirmed', 'Completed', 'Cancelled'],
-    default: 'Pending'
-  },
-  notes: {
-    type: String,
-    default: ''
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now
+  {
+    timestamps: true,
   }
-});
+);
 
 module.exports = mongoose.model('Booking', bookingSchema);
