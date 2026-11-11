@@ -13,7 +13,7 @@ import { fetchMachines, fetchStorage } from './services/api';
 import { Loader2, CheckCircle2 } from 'lucide-react';
 
 function App() {
-  const [activeTab, setActiveTab] = useState('machines'); // 'machines' | 'storage' | 'my-bookings' | 'owner-dashboard'
+  const [activeTab, setActiveTab] = useState('machines');
   const [machines, setMachines] = useState([]);
   const [storages, setStorages] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -116,7 +116,9 @@ function App() {
         {activeTab === 'my-bookings' && <MyBookings />}
 
         {/* View 2: Owner View */}
-        {activeTab === 'owner-dashboard' && <OwnerDashboard />}
+        {activeTab === 'owner-dashboard' && (
+          <OwnerDashboard onOpenAddListing={() => setIsAddListingOpen(true)} />
+        )}
 
         {/* View 3: Marketplace View */}
         {(activeTab === 'machines' || activeTab === 'storage') && (

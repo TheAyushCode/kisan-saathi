@@ -7,6 +7,7 @@ const connectDB = require('./config/db');
 const machineRoutes = require('./routes/machineRoutes');
 const storageRoutes = require('./routes/storageRoutes');
 const bookingRoutes = require('./routes/bookingRoutes');
+const ownerRoutes = require('./routes/ownerRoutes');
 
 const app = express();
 
@@ -15,7 +16,7 @@ connectDB();
 
 // Middlewares
 app.use(cors({
-  origin: '*', // प्रोडक्शन में आप यहाँ विशिष्ट डोमेन भी दे सकते हैं
+  origin: '*',
   methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE'],
   credentials: true
 }));
@@ -25,6 +26,7 @@ app.use(express.json());
 app.use('/api/machines', machineRoutes);
 app.use('/api/storage', storageRoutes);
 app.use('/api/bookings', bookingRoutes);
+app.use('/api/owners', ownerRoutes);
 
 // Health Check Route
 app.get('/api/health', (req, res) => {

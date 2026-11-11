@@ -48,4 +48,20 @@ export const createStorage = async (storageData) => {
   return response.data;
 };
 
+// ओनर ऑथ एवं डैशबोर्ड API
+export const registerOwnerApi = async (data) => {
+  const response = await API.post('/owners/register', data);
+  return response.data;
+};
+
+export const loginOwnerApi = async (data) => {
+  const response = await API.post('/owners/login', data);
+  return response.data;
+};
+
+export const fetchOwnerBookings = async (phone) => {
+  const response = await API.get(`/owners/${phone}/bookings`);
+  return response.data;
+};
+
 export default API;
