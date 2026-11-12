@@ -84,14 +84,35 @@ function App() {
     setTimeout(() => setSuccessToast(''), 5000);
   };
 
-  // कृषि यंत्र और गोदाम के लिए अलग-अलग हाई-क्वालिटी बैकग्राउंड इमेज
-  const bannerBgImage =
-    activeTab === 'machines'
-      ? 'https://images.unsplash.com/photo-1625246333195-78d9c38ad449?auto=format&fit=crop&w=1600&q=80'
-      : 'https://images.unsplash.com/photo-1586771107445-d3ca888129ff?auto=format&fit=crop&w=1600&q=80';
-
   return (
     <div className="min-h-screen flex flex-col font-sans relative">
+      
+      {/* ================= FULL SCREEN ANIMATED FARM & HARVESTING BACKGROUND ================= */}
+      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+        {/* चलता हुआ फसल एवं हार्वेस्टिंग वीडियो (वीडियो लोड न होने पर एनिमेटेड इमेज फॉलबैक के साथ) */}
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          poster="https://images.unsplash.com/photo-1625246333195-78d9c38ad449?auto=format&fit=crop&w=1920&q=80"
+          className="w-full h-full object-cover animate-farm-bg opacity-85"
+        >
+          <source
+            src="https://assets.mixkit.co/videos/preview/mixkit-harvesting-wheat-with-a-combine-harvester-42651-large.mp4"
+            type="video/mp4"
+          />
+          <source
+            src="https://assets.mixkit.co/videos/preview/mixkit-green-wheat-field-swaying-in-the-wind-42646-large.mp4"
+            type="video/mp4"
+          />
+        </video>
+
+        {/* हल्का हरा और साफ़ ग्लास ओवरले ताकि टेक्स्ट और कार्ड बिल्कुल साफ़ दिखें */}
+        <div className="absolute inset-0 bg-gradient-to-b from-emerald-950/55 via-slate-900/35 to-emerald-950/70 backdrop-blur-[2px]" />
+      </div>
+      {/* ===================================================================================== */}
+
       <Navbar
         activeTab={activeTab}
         setActiveTab={(tab) => {
@@ -101,9 +122,9 @@ function App() {
         onOpenCalculator={() => setIsCalculatorOpen(true)}
       />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
         {successToast && (
-          <div className="mb-6 bg-emerald-600 text-white px-4 py-3 rounded-2xl shadow-lg flex items-center justify-between text-sm animate-in fade-in">
+          <div className="mb-6 bg-emerald-600/95 backdrop-blur-md text-white px-4 py-3 rounded-2xl shadow-xl flex items-center justify-between text-sm animate-in fade-in">
             <div className="flex items-center gap-2">
               <CheckCircle2 className="w-5 h-5 shrink-0" />
               <span>{successToast}</span>
@@ -125,46 +146,33 @@ function App() {
           <OwnerDashboard onOpenAddListing={() => setIsAddListingOpen(true)} />
         )}
 
-        {/* View 3: Marketplace View with Graphic Hero Banner */}
+        {/* View 3: Marketplace View */}
         {(activeTab === 'machines' || activeTab === 'storage') && (
           <>
-            <div className="relative rounded-3xl overflow-hidden shadow-lg mb-6 border border-emerald-900/20">
-              {/* Background Graphic Image */}
-              <div
-                className="absolute inset-0 bg-cover bg-center transition-all duration-700"
-                style={{ backgroundImage: `url(${bannerBgImage})` }}
-              />
-              {/* Dark Green Gradient Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-r from-emerald-950/90 via-emerald-900/80 to-emerald-800/65" />
-
-              {/* Decorative Right Circle Glow */}
-              <div className="absolute -right-12 -bottom-12 w-64 h-64 bg-amber-400/20 rounded-full blur-2xl pointer-events-none" />
-
-              {/* Content */}
-              <div className="relative z-10 p-6 sm:p-9 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-white">
-                <div className="max-w-2xl">
-                  <div className="inline-flex items-center gap-1.5 bg-amber-400/20 border border-amber-300/30 text-amber-300 text-xs font-semibold px-3 py-1 rounded-full mb-3 backdrop-blur-sm">
-                    <Sparkles className="w-3.5 h-3.5" />
-                    <span>बिहार कृषि डिजिटल पहल</span>
-                  </div>
-                  <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight leading-snug">
-                    {activeTab === 'machines'
-                      ? '🚜 ई-साझा कृषि यंत्र (किराया मंच)'
-                      : '🏢 पैक्स गोदाम एवं शीतगृह (कोल्ड स्टोरेज)'}
-                  </h1>
-                  <p className="text-sm sm:text-base text-emerald-100 mt-2">
-                    बिहार के सभी 38 ज़िलों के किसानों के लिए आधुनिक मशीनों और सुरक्षित भंडारण की सीधी बुकिंग व पारदर्शी दरें
-                  </p>
+            {/* Translucent Glass Banner */}
+            <div className="bg-emerald-950/65 backdrop-blur-md rounded-3xl shadow-xl mb-6 border border-white/20 p-6 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-white">
+              <div className="max-w-2xl">
+                <div className="inline-flex items-center gap-1.5 bg-amber-400/20 border border-amber-300/40 text-amber-300 text-xs font-semibold px-3 py-1 rounded-full mb-3">
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>बिहार कृषि डिजिटल पहल</span>
                 </div>
-
-                <button
-                  onClick={loadData}
-                  className="bg-white/15 hover:bg-white/25 backdrop-blur-md text-white px-4 py-2.5 rounded-xl border border-white/25 text-xs sm:text-sm font-medium flex items-center gap-2 transition-all shadow-sm shrink-0"
-                >
-                  <RefreshCw className="w-4 h-4" />
-                  <span>डेटा रिफ्रेश करें</span>
-                </button>
+                <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight leading-snug">
+                  {activeTab === 'machines'
+                    ? '🚜 ई-साझा कृषि यंत्र (किराया मंच)'
+                    : '🏢 पैक्स गोदाम एवं शीतगृह (कोल्ड स्टोरेज)'}
+                </h1>
+                <p className="text-sm sm:text-base text-emerald-100 mt-1.5">
+                  बिहार के सभी 38 ज़िलों के किसानों के लिए आधुनिक मशीनों और सुरक्षित भंडारण की सीधी बुकिंग व पारदर्शी दरें
+                </p>
               </div>
+
+              <button
+                onClick={loadData}
+                className="bg-white/15 hover:bg-white/25 backdrop-blur-md text-white px-4 py-2.5 rounded-xl border border-white/30 text-xs sm:text-sm font-medium flex items-center gap-2 transition-all shadow-sm shrink-0"
+              >
+                <RefreshCw className="w-4 h-4" />
+                <span>डेटा रिफ्रेश करें</span>
+              </button>
             </div>
 
             <FilterBar
@@ -177,26 +185,26 @@ function App() {
             />
 
             {loading && (
-              <div className="flex flex-col items-center justify-center py-16 text-slate-500">
-                <Loader2 className="w-8 h-8 animate-spin text-emerald-700 mb-2" />
-                <p className="text-sm">डेटा खोजा जा रहा है...</p>
+              <div className="flex flex-col items-center justify-center py-16 text-white bg-black/30 backdrop-blur-sm rounded-2xl">
+                <Loader2 className="w-8 h-8 animate-spin text-amber-400 mb-2" />
+                <p className="text-sm font-medium">डेटा खोजा जा रहा है...</p>
               </div>
             )}
 
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl text-center text-sm mb-6">
+              <div className="bg-red-50/95 backdrop-blur-md border border-red-200 text-red-700 p-4 rounded-xl text-center text-sm mb-6 shadow-md">
                 {error}
               </div>
             )}
 
             {!loading && !error && activeTab === 'machines' && machines.length === 0 && (
-              <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-slate-200 p-8 text-center text-slate-500">
+              <div className="bg-white/90 backdrop-blur-md rounded-2xl border border-white/40 p-8 text-center text-slate-700 shadow-lg">
                 चुने गए फ़िल्टर के अनुसार कोई कृषि यंत्र उपलब्ध नहीं मिला।
               </div>
             )}
 
             {!loading && !error && activeTab === 'storage' && storages.length === 0 && (
-              <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-slate-200 p-8 text-center text-slate-500">
+              <div className="bg-white/90 backdrop-blur-md rounded-2xl border border-white/40 p-8 text-center text-slate-700 shadow-lg">
                 चुने गए फ़िल्टर के अनुसार कोई गोदाम उपलब्ध नहीं मिला।
               </div>
             )}
