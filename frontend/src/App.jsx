@@ -10,7 +10,7 @@ import AddListingModal from './components/AddListingModal';
 import LandCalculatorModal from './components/LandCalculatorModal';
 import Footer from './components/Footer';
 import { fetchMachines, fetchStorage } from './services/api';
-import { Loader2, CheckCircle2 } from 'lucide-react';
+import { Loader2, CheckCircle2, Sparkles, RefreshCw } from 'lucide-react';
 
 function App() {
   const [activeTab, setActiveTab] = useState('machines');
@@ -84,15 +84,20 @@ function App() {
     setTimeout(() => setSuccessToast(''), 5000);
   };
 
+  // कृषि यंत्र और गोदाम के लिए अलग-अलग हाई-क्वालिटी बैकग्राउंड इमेज
+  const bannerBgImage =
+    activeTab === 'machines'
+      ? 'https://images.unsplash.com/photo-1625246333195-78d9c38ad449?auto=format&fit=crop&w=1600&q=80'
+      : 'https://images.unsplash.com/photo-1586771107445-d3ca888129ff?auto=format&fit=crop&w=1600&q=80';
+
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
+    <div className="min-h-screen flex flex-col font-sans relative">
       <Navbar
         activeTab={activeTab}
         setActiveTab={(tab) => {
           setActiveTab(tab);
           handleResetFilters();
         }}
-        onOpenAddListing={() => setIsAddListingOpen(true)}
         onOpenCalculator={() => setIsCalculatorOpen(true)}
       />
 
@@ -120,26 +125,46 @@ function App() {
           <OwnerDashboard onOpenAddListing={() => setIsAddListingOpen(true)} />
         )}
 
-        {/* View 3: Marketplace View */}
+        {/* View 3: Marketplace View with Graphic Hero Banner */}
         {(activeTab === 'machines' || activeTab === 'storage') && (
           <>
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div>
-                <h1 className="text-2xl font-bold text-slate-800">
-                  {activeTab === 'machines'
-                    ? '🚜 ई-साझा कृषि यंत्र (किराया मंच)'
-                    : '🏢 पैक्स गोदाम एवं शीतगृह (कोल्ड स्टोरेज)'}
-                </h1>
-                <p className="text-sm text-slate-600 mt-1">
-                  बिहार के 38 ज़िलों के किसानों के लिए सीधी बुकिंग व पारदर्शी दरें
-                </p>
+            <div className="relative rounded-3xl overflow-hidden shadow-lg mb-6 border border-emerald-900/20">
+              {/* Background Graphic Image */}
+              <div
+                className="absolute inset-0 bg-cover bg-center transition-all duration-700"
+                style={{ backgroundImage: `url(${bannerBgImage})` }}
+              />
+              {/* Dark Green Gradient Overlay */}
+              <div className="absolute inset-0 bg-gradient-to-r from-emerald-950/90 via-emerald-900/80 to-emerald-800/65" />
+
+              {/* Decorative Right Circle Glow */}
+              <div className="absolute -right-12 -bottom-12 w-64 h-64 bg-amber-400/20 rounded-full blur-2xl pointer-events-none" />
+
+              {/* Content */}
+              <div className="relative z-10 p-6 sm:p-9 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-white">
+                <div className="max-w-2xl">
+                  <div className="inline-flex items-center gap-1.5 bg-amber-400/20 border border-amber-300/30 text-amber-300 text-xs font-semibold px-3 py-1 rounded-full mb-3 backdrop-blur-sm">
+                    <Sparkles className="w-3.5 h-3.5" />
+                    <span>बिहार कृषि डिजिटल पहल</span>
+                  </div>
+                  <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight leading-snug">
+                    {activeTab === 'machines'
+                      ? '🚜 ई-साझा कृषि यंत्र (किराया मंच)'
+                      : '🏢 पैक्स गोदाम एवं शीतगृह (कोल्ड स्टोरेज)'}
+                  </h1>
+                  <p className="text-sm sm:text-base text-emerald-100 mt-2">
+                    बिहार के सभी 38 ज़िलों के किसानों के लिए आधुनिक मशीनों और सुरक्षित भंडारण की सीधी बुकिंग व पारदर्शी दरें
+                  </p>
+                </div>
+
+                <button
+                  onClick={loadData}
+                  className="bg-white/15 hover:bg-white/25 backdrop-blur-md text-white px-4 py-2.5 rounded-xl border border-white/25 text-xs sm:text-sm font-medium flex items-center gap-2 transition-all shadow-sm shrink-0"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  <span>डेटा रिफ्रेश करें</span>
+                </button>
               </div>
-              <button
-                onClick={loadData}
-                className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg border border-slate-300 font-medium"
-              >
-                रिफ्रेश करें 🔄
-              </button>
             </div>
 
             <FilterBar
@@ -165,13 +190,13 @@ function App() {
             )}
 
             {!loading && !error && activeTab === 'machines' && machines.length === 0 && (
-              <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center text-slate-500">
+              <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-slate-200 p-8 text-center text-slate-500">
                 चुने गए फ़िल्टर के अनुसार कोई कृषि यंत्र उपलब्ध नहीं मिला।
               </div>
             )}
 
             {!loading && !error && activeTab === 'storage' && storages.length === 0 && (
-              <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center text-slate-500">
+              <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-slate-200 p-8 text-center text-slate-500">
                 चुने गए फ़िल्टर के अनुसार कोई गोदाम उपलब्ध नहीं मिला।
               </div>
             )}
