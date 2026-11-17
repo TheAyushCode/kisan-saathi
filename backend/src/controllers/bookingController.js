@@ -1,6 +1,6 @@
 const Booking = require('../models/Booking');
 
-// @desc    नई बुकिंग बनाएँ
+// @desc    नई बुकिंग बनाएँ (पारदर्शी बिलिंग के साथ)
 // @route   POST /api/bookings
 exports.createBooking = async (req, res) => {
   try {
@@ -16,6 +16,11 @@ exports.createBooking = async (req, res) => {
       storageId,
       areaInKatha,
       quantityQuintals,
+      fuelOption,
+      withOperator,
+      baseRate,
+      estimatedTotal,
+      platformFee,
     } = req.body;
 
     const newBooking = await Booking.create({
@@ -34,12 +39,17 @@ exports.createBooking = async (req, res) => {
       storageId: storageId || undefined,
       areaInKatha: areaInKatha ? Number(areaInKatha) : undefined,
       quantityQuintals: quantityQuintals ? Number(quantityQuintals) : undefined,
+      fuelOption: fuelOption || (machineId ? 'With_Fuel' : 'Not_Applicable'),
+      withOperator: withOperator !== undefined ? Boolean(withOperator) : true,
+      baseRate: Number(baseRate) || 0,
+      estimatedTotal: Number(estimatedTotal) || 0,
+      platformFee: Number(platformFee) || 0,
       status: 'Pending',
     });
 
     res.status(201).json({
       success: true,
-      message: 'बुकिंग सफलतापूर्वक दर्ज कर ली गई है',
+      message: 'बुकिंग और डिजिटल रसीद सफलतापूर्वक दर्ज कर ली गई है',
       data: newBooking,
     });
   } catch (error) {
@@ -81,7 +91,7 @@ exports.updateBookingStatus = async (req, res) => {
     if (!['Confirmed', 'Cancelled', 'Pending'].includes(status)) {
       return res.status(400).json({
         success: false,
-        message: 'अमान्य स्टेटस। केवल Confirmed, Cancelled, या Pending मान्य हैं।',
+        message: 'अमान्य स्टेटस',
       });
     }
 

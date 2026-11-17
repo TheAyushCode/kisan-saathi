@@ -9,10 +9,11 @@ import {
   Tractor,
   Warehouse,
   AlertCircle,
-  Check,
-  X,
+  Printer,
+  Fuel,
+  UserCheck,
 } from 'lucide-react';
-import { fetchBookings, updateBookingStatus } from '../services/api';
+import { fetchBookings } from '../services/api';
 
 const MyBookings = () => {
   const [phone, setPhone] = useState('');
@@ -20,7 +21,6 @@ const MyBookings = () => {
   const [loading, setLoading] = useState(false);
   const [bookings, setBookings] = useState([]);
   const [error, setError] = useState('');
-  const [actionLoadingId, setActionLoadingId] = useState(null);
 
   const handleSearch = async (e) => {
     if (e) e.preventDefault();
@@ -46,18 +46,62 @@ const MyBookings = () => {
     }
   };
 
-  const handleStatusChange = async (bookingId, newStatus) => {
-    setActionLoadingId(bookingId);
-    try {
-      await updateBookingStatus(bookingId, newStatus);
-      setBookings((prev) =>
-        prev.map((b) => (b._id === bookingId ? { ...b, status: newStatus } : b))
-      );
-    } catch (err) {
-      alert('स्थिति अपडेट करने में समस्या हुई।');
-    } finally {
-      setActionLoadingId(null);
-    }
+  // डिजिटल रसीद प्रिंट / PDF डाउनलोड फ़ंक्शन
+  const handlePrintReceipt = (booking, item, isMachine) => {
+    const receiptWindow = window.open('', '_blank', 'width=700,height=800');
+    const qty = isMachine
+      ? `${booking.areaInKatha || booking.durationOrQuantity || 1} कट्ठा`
+      : `${booking.quantityQuintals || booking.durationOrQuantity || 1} क्विंटल`;
+    const totalAmount = booking.estimatedTotal || 0;
+    const fuelText =
+      booking.fuelOption === 'Without_Fuel'
+        ? 'बिना डीजल (Without Fuel)'
+        : booking.fuelOption === 'With_Fuel'
+        ? 'डीजल सहित (With Fuel)'
+        : 'लागू नहीं';
+
+    receiptWindow.document.write(`
+      <html>
+        <head>
+          <title>डिजिटल बुकिंग रसीद - किसान साथी बिहार</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 30px; color: #1e293b; }
+            .box { border: 2px solid #065f46; border-radius: 12px; padding: 24px; max-width: 600px; margin: auto; }
+            .header { text-align: center; border-bottom: 2px dashed #cbd5e1; padding-bottom: 16px; margin-bottom: 20px; }
+            .header h1 { color: #065f46; margin: 0; font-size: 22px; }
+            .header p { margin: 4px 0; font-size: 12px; color: #475569; }
+            .row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
+            .total { font-size: 18px; font-weight: bold; color: #065f46; border-top: 2px solid #065f46; margin-top: 12px; padding-top: 12px; }
+            .badge { background: #ecfdf5; color: #065f46; padding: 4px 10px; border-radius: 20px; font-weight: bold; font-size: 12px; }
+            .footer { text-align: center; margin-top: 24px; font-size: 11px; color: #64748b; }
+          </style>
+        </head>
+        <body>
+          <div class="box">
+            <div class="header">
+              <h1>🌾 किसान साथी बिहार (Kisan Saathi Bihar)</h1>
+              <p>ई-साझा कृषि यंत्र एवं भंडारण डिजिटल बुकिंग रसीद</p>
+              <p>रसीद संख्या: <strong>#${booking._id.slice(-8).toUpperCase()}</strong></p>
+            </div>
+            <div class="row"><span>किसान का नाम:</span><strong>${booking.farmerName}</strong></div>
+            <div class="row"><span>मोबाइल नंबर:</span><strong>${booking.farmerPhone}</strong></div>
+            <div class="row"><span>सेवा / साधन:</span><strong>${item?.name || 'कृषि सेवा'}</strong></div>
+            <div class="row"><span>स्थान:</span><strong>${item?.block || ''}, ${item?.district || 'बिहार'}</strong></div>
+            <div class="row"><span>सेवा तिथि:</span><strong>${new Date(booking.serviceDate || booking.startDate).toLocaleDateString('hi-IN')}</strong></div>
+            <div class="row"><span>मात्रा / क्षेत्रफल:</span><strong>${qty}</strong></div>
+            ${isMachine ? `<div class="row"><span>ईंधन विकल्प:</span><strong>${fuelText}</strong></div>` : ''}
+            ${isMachine ? `<div class="row"><span>ऑपरेटर:</span><strong>${booking.withOperator ? 'सहित (Included)' : 'नहीं'}</strong></div>` : ''}
+            <div class="row"><span>वर्तमान स्थिति:</span><span class="badge">${booking.status}</span></div>
+            <div class="row total"><span>कुल अनुमानित बिल राशि:</span><span>₹${totalAmount}</span></div>
+            <div class="footer">
+              यह कंप्यूटर जनित डिजिटल रसीद है। सहायता हेतु किसान साथी बिहार पोर्टल पर जाएँ।
+            </div>
+          </div>
+          <script>window.onload = function() { window.print(); }</script>
+        </body>
+      </html>
+    `);
+    receiptWindow.document.close();
   };
 
   const getStatusBadge = (status) => {
@@ -88,8 +132,8 @@ const MyBookings = () => {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 max-w-xl mx-auto text-center">
-        <h2 className="text-xl font-bold text-slate-800 mb-1">मेरी बुकिंग्स ट्रैक करें</h2>
+      <div className="bg-white/95 backdrop-blur-md rounded-2xl border border-slate-200 shadow-lg p-6 max-w-xl mx-auto text-center">
+        <h2 className="text-xl font-bold text-slate-800 mb-1">मेरी बुकिंग्स एवं डिजिटल रसीद</h2>
         <p className="text-xs text-slate-500 mb-5">
           बुकिंग दर्ज करते समय उपयोग किया गया 10 अंकों का मोबाइल नंबर दर्ज करें
         </p>
@@ -127,7 +171,7 @@ const MyBookings = () => {
       {searched && !loading && (
         <div>
           {bookings.length === 0 ? (
-            <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center text-slate-500 max-w-lg mx-auto">
+            <div className="bg-white/95 backdrop-blur-md rounded-2xl border border-slate-200 p-8 text-center text-slate-500 max-w-lg mx-auto shadow-md">
               इस मोबाइल नंबर ({phone}) से कोई बुकिंग नहीं मिली।
             </div>
           ) : (
@@ -140,7 +184,7 @@ const MyBookings = () => {
                 return (
                   <div
                     key={b._id}
-                    className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-3"
+                    className="bg-white/95 backdrop-blur-md rounded-2xl border border-slate-200 shadow-md p-5 space-y-3"
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex items-center gap-2">
@@ -186,33 +230,37 @@ const MyBookings = () => {
                         </span>
                       </div>
                       <div>
-                        <span className="text-slate-500 block">स्थान (ज़िला)</span>
-                        <span className="font-semibold text-slate-800">
-                          {item?.district || 'बिहार'}
+                        <span className="text-slate-500 block">कुल अनुमानित बिल</span>
+                        <span className="font-extrabold text-emerald-800 text-sm">
+                          ₹{b.estimatedTotal || '—'}
                         </span>
                       </div>
                     </div>
 
-                    {b.status === 'Pending' && (
-                      <div className="flex items-center gap-2 pt-2 border-t border-slate-100">
-                        <button
-                          disabled={actionLoadingId === b._id}
-                          onClick={() => handleStatusChange(b._id, 'Confirmed')}
-                          className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold py-2 px-3 rounded-xl flex items-center justify-center gap-1 transition-colors disabled:opacity-50"
-                        >
-                          <Check className="w-4 h-4" />
-                          स्वीकार करें (Accept)
-                        </button>
-                        <button
-                          disabled={actionLoadingId === b._id}
-                          onClick={() => handleStatusChange(b._id, 'Cancelled')}
-                          className="flex-1 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-semibold py-2 px-3 rounded-xl flex items-center justify-center gap-1 transition-colors disabled:opacity-50"
-                        >
-                          <X className="w-4 h-4" />
-                          रद्द करें (Reject)
-                        </button>
+                    {isMachine && (
+                      <div className="flex flex-wrap gap-2 text-[11px] text-slate-600">
+                        <span className="bg-amber-50 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-md flex items-center gap-1">
+                          <Fuel className="w-3 h-3" />
+                          {b.fuelOption === 'Without_Fuel' ? 'बिना डीजल' : 'डीजल सहित'}
+                        </span>
+                        {b.withOperator && (
+                          <span className="bg-emerald-50 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded-md flex items-center gap-1">
+                            <UserCheck className="w-3 h-3" />
+                            ऑपरेटर सहित
+                          </span>
+                        )}
                       </div>
                     )}
+
+                    <div className="pt-2 border-t border-slate-100 flex justify-end">
+                      <button
+                        onClick={() => handlePrintReceipt(b, item, isMachine)}
+                        className="bg-slate-800 hover:bg-slate-900 text-white text-xs font-medium px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition-colors shadow-sm"
+                      >
+                        <Printer className="w-3.5 h-3.5" />
+                        डिजिटल रसीद / PDF डाउनलोड करें
+                      </button>
+                    </div>
                   </div>
                 );
               })}

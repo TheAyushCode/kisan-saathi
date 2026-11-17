@@ -50,6 +50,28 @@ const bookingSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    // Day 1 New Billing & Transparent Pricing Fields
+    fuelOption: {
+      type: String,
+      enum: ['With_Fuel', 'Without_Fuel', 'Not_Applicable'],
+      default: 'With_Fuel',
+    },
+    withOperator: {
+      type: Boolean,
+      default: true,
+    },
+    baseRate: {
+      type: Number,
+      default: 0,
+    },
+    estimatedTotal: {
+      type: Number,
+      default: 0,
+    },
+    platformFee: {
+      type: Number,
+      default: 0,
+    },
     status: {
       type: String,
       enum: ['Pending', 'Confirmed', 'Cancelled'],
