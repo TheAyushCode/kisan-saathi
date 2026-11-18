@@ -6,6 +6,7 @@ import FilterBar from './components/FilterBar';
 import BookingModal from './components/BookingModal';
 import MyBookings from './components/MyBookings';
 import OwnerDashboard from './components/OwnerDashboard';
+import MandiPrices from './components/MandiPrices';
 import AddListingModal from './components/AddListingModal';
 import LandCalculatorModal from './components/LandCalculatorModal';
 import Footer from './components/Footer';
@@ -61,6 +62,12 @@ function App() {
     setSelectedCategory('');
   };
 
+  const handleNavigateToStorageFromMandi = (district) => {
+    setSelectedCategory('');
+    setSelectedDistrict(district);
+    setActiveTab('storage');
+  };
+
   const handleMachineBook = (machine) => {
     setBookingType('machine');
     setSelectedItemForBooking(machine);
@@ -86,10 +93,8 @@ function App() {
 
   return (
     <div className="min-h-screen flex flex-col font-sans relative">
-      
-      {/* ================= FULL SCREEN ANIMATED FARM & HARVESTING BACKGROUND ================= */}
+      {/* Full-Screen Animated Farm & Harvesting Background */}
       <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
-        {/* चलता हुआ फसल एवं हार्वेस्टिंग वीडियो (वीडियो लोड न होने पर एनिमेटेड इमेज फॉलबैक के साथ) */}
         <video
           autoPlay
           loop
@@ -107,11 +112,8 @@ function App() {
             type="video/mp4"
           />
         </video>
-
-        {/* हल्का हरा और साफ़ ग्लास ओवरले ताकि टेक्स्ट और कार्ड बिल्कुल साफ़ दिखें */}
         <div className="absolute inset-0 bg-gradient-to-b from-emerald-950/55 via-slate-900/35 to-emerald-950/70 backdrop-blur-[2px]" />
       </div>
-      {/* ===================================================================================== */}
 
       <Navbar
         activeTab={activeTab}
@@ -138,18 +140,22 @@ function App() {
           </div>
         )}
 
-        {/* View 1: Farmer View */}
+        {/* View 1: Mandi Prices & Smart Storage Advisory */}
+        {activeTab === 'mandi' && (
+          <MandiPrices onNavigateToStorage={handleNavigateToStorageFromMandi} />
+        )}
+
+        {/* View 2: Farmer View */}
         {activeTab === 'my-bookings' && <MyBookings />}
 
-        {/* View 2: Owner View */}
+        {/* View 3: Owner View */}
         {activeTab === 'owner-dashboard' && (
           <OwnerDashboard onOpenAddListing={() => setIsAddListingOpen(true)} />
         )}
 
-        {/* View 3: Marketplace View */}
+        {/* View 4: Marketplace View */}
         {(activeTab === 'machines' || activeTab === 'storage') && (
           <>
-            {/* Translucent Glass Banner */}
             <div className="bg-emerald-950/65 backdrop-blur-md rounded-3xl shadow-xl mb-6 border border-white/20 p-6 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-white">
               <div className="max-w-2xl">
                 <div className="inline-flex items-center gap-1.5 bg-amber-400/20 border border-amber-300/40 text-amber-300 text-xs font-semibold px-3 py-1 rounded-full mb-3">

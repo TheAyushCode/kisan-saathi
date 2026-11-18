@@ -1,9 +1,17 @@
 import React from 'react';
-import { Tractor, Warehouse, ClipboardList, Calculator, ArrowLeft, ShieldCheck } from 'lucide-react';
+import {
+  Tractor,
+  Warehouse,
+  ClipboardList,
+  Calculator,
+  ArrowLeft,
+  ShieldCheck,
+  TrendingUp,
+} from 'lucide-react';
 
 const Navbar = ({ activeTab, setActiveTab, onOpenCalculator }) => {
   return (
-    <header className="bg-emerald-800 text-white shadow-md sticky top-0 z-50">
+    <header className="bg-emerald-800/95 backdrop-blur-md text-white shadow-md sticky top-0 z-50 border-b border-emerald-700">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           
@@ -33,10 +41,10 @@ const Navbar = ({ activeTab, setActiveTab, onOpenCalculator }) => {
           </div>
 
           {/* Navigation Links */}
-          <nav className="flex space-x-1 sm:space-x-2 overflow-x-auto">
+          <nav className="flex space-x-1 sm:space-x-1.5 overflow-x-auto">
             <button
               onClick={() => setActiveTab('machines')}
-              className={`flex items-center space-x-1 px-2.5 sm:px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors shrink-0 ${
+              className={`flex items-center space-x-1 px-2.5 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors shrink-0 ${
                 activeTab === 'machines'
                   ? 'bg-emerald-950 text-amber-300 shadow-inner'
                   : 'text-emerald-100 hover:bg-emerald-700'
@@ -48,7 +56,7 @@ const Navbar = ({ activeTab, setActiveTab, onOpenCalculator }) => {
 
             <button
               onClick={() => setActiveTab('storage')}
-              className={`flex items-center space-x-1 px-2.5 sm:px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors shrink-0 ${
+              className={`flex items-center space-x-1 px-2.5 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors shrink-0 ${
                 activeTab === 'storage'
                   ? 'bg-emerald-950 text-amber-300 shadow-inner'
                   : 'text-emerald-100 hover:bg-emerald-700'
@@ -59,8 +67,20 @@ const Navbar = ({ activeTab, setActiveTab, onOpenCalculator }) => {
             </button>
 
             <button
+              onClick={() => setActiveTab('mandi')}
+              className={`flex items-center space-x-1 px-2.5 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors shrink-0 ${
+                activeTab === 'mandi'
+                  ? 'bg-emerald-950 text-amber-300 shadow-inner'
+                  : 'text-emerald-100 hover:bg-emerald-700'
+              }`}
+            >
+              <TrendingUp className="w-4 h-4 text-amber-300" />
+              <span>मंडी भाव</span>
+            </button>
+
+            <button
               onClick={() => setActiveTab('my-bookings')}
-              className={`flex items-center space-x-1 px-2.5 sm:px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors shrink-0 ${
+              className={`flex items-center space-x-1 px-2.5 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors shrink-0 ${
                 activeTab === 'my-bookings'
                   ? 'bg-emerald-950 text-amber-300 shadow-inner'
                   : 'text-emerald-100 hover:bg-emerald-700'
@@ -72,7 +92,7 @@ const Navbar = ({ activeTab, setActiveTab, onOpenCalculator }) => {
 
             <button
               onClick={() => setActiveTab('owner-dashboard')}
-              className={`flex items-center space-x-1 px-2.5 sm:px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors shrink-0 ${
+              className={`flex items-center space-x-1 px-2.5 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors shrink-0 ${
                 activeTab === 'owner-dashboard'
                   ? 'bg-emerald-950 text-amber-300 shadow-inner'
                   : 'text-emerald-100 hover:bg-emerald-700'
@@ -83,7 +103,7 @@ const Navbar = ({ activeTab, setActiveTab, onOpenCalculator }) => {
             </button>
           </nav>
 
-          {/* Action Buttons (केवल भूमि मापक कैलकुलेटर) */}
+          {/* Action Buttons */}
           <div className="flex items-center shrink-0">
             <button
               onClick={onOpenCalculator}
