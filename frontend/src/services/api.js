@@ -48,14 +48,29 @@ export const createStorage = async (storageData) => {
   return response.data;
 };
 
-// ओनर ऑथ एवं डैशबोर्ड API
-export const registerOwnerApi = async (data) => {
-  const response = await API.post('/owners/register', data);
+// ओनर ईमेल वेरिफिकेशन, लॉगिन, पासवर्ड रीसेट एवं डैशबोर्ड API
+export const sendRegisterEmailOtpApi = async (data) => {
+  const response = await API.post('/owners/register/send-otp', data);
+  return response.data;
+};
+
+export const verifyAndRegisterOwnerApi = async (data) => {
+  const response = await API.post('/owners/register/verify', data);
   return response.data;
 };
 
 export const loginOwnerApi = async (data) => {
   const response = await API.post('/owners/login', data);
+  return response.data;
+};
+
+export const sendOwnerEmailOtpApi = async (email) => {
+  const response = await API.post('/owners/forgot-password/send-otp', { email });
+  return response.data;
+};
+
+export const resetOwnerPasswordByEmailApi = async (data) => {
+  const response = await API.post('/owners/forgot-password/reset', data);
   return response.data;
 };
 
