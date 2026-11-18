@@ -7,16 +7,10 @@ const ownerSchema = new mongoose.Schema(
       required: [true, 'मालिक का नाम आवश्यक है'],
       trim: true,
     },
-    email: {
-      type: String,
-      required: [true, 'ईमेल आईडी आवश्यक है'],
-      unique: true,
-      lowercase: true,
-      trim: true,
-    },
     phone: {
       type: String,
       required: [true, 'मोबाइल नंबर आवश्यक है'],
+      unique: true,
       trim: true,
     },
     password: {
@@ -30,10 +24,6 @@ const ownerSchema = new mongoose.Schema(
     block: {
       type: String,
       required: [true, 'प्रखंड आवश्यक है'],
-    },
-    isEmailVerified: {
-      type: Boolean,
-      default: true,
     },
     resetOtp: {
       type: String,
@@ -49,7 +39,7 @@ const ownerSchema = new mongoose.Schema(
 
 const Owner = mongoose.model('Owner', ownerSchema);
 
-// पुराने phone_1 unique index को हटाने के लिए ताकि डुप्लीकेट फ़ोन एरर न आए
-Owner.collection.dropIndex('phone_1').catch(() => {});
+// पुराने email_1 index को हटाने के लिए ताकि बिना ईमेल के सिंपल रजिस्ट्रेशन हो सके
+Owner.collection.dropIndex('email_1').catch(() => {});
 
 module.exports = Owner;

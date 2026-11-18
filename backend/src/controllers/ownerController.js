@@ -2,140 +2,40 @@ const Owner = require('../models/Owner');
 const Booking = require('../models/Booking');
 const Machine = require('../models/Machine');
 const Storage = require('../models/Storage');
-const nodemailer = require('nodemailer');
 
-const pendingRegistrations = new Map();
-
-// तेज़ Gmail SMTP कनेक्शन (Port 587 + IPv4 + Timeout Protection)
-const sendEmailOtp = async (toEmail, otp, purpose = 'पंजीकरण सत्यापन') => {
-  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-    throw new Error('सर्वर पर EMAIL_USER और EMAIL_PASS सेट नहीं हैं।');
-  }
-
-  const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 587,
-    secure: false, // Port 587 के लिए false (STARTTLS) तेज़ चलता है
-    requireTLS: true,
-    family: 4, // Render पर IPv6 हैंग होने से बचाने के लिए IPv4 अनिवार्य
-    connectionTimeout: 10000, // अधिकतम 10 सेकंड में कनेक्ट हो
-    greetingTimeout: 10000,
-    socketTimeout: 15000,
-    auth: {
-      user: process.env.EMAIL_USER.trim(),
-      pass: process.env.EMAIL_PASS.replace(/\s+/g, ''), // स्पेस अपने आप हट जाएँगे
-    },
-  });
-
-  await transporter.sendMail({
-    from: `"किसान साथी बिहार" <${process.env.EMAIL_USER.trim()}>`,
-    to: toEmail,
-    subject: `किसान साथी बिहार - ${purpose} OTP (${otp})`,
-    html: `
-      <div style="font-family: Arial, sans-serif; padding: 24px; border: 2px solid #065f46; border-radius: 14px; max-width: 500px; background-color: #ffffff;">
-        <h2 style="color: #065f46; margin-top: 0;">🌾 किसान साथी बिहार (मालिक पोर्टल)</h2>
-        <p style="color: #334155; font-size: 14px;">नमस्ते,</p>
-        <p style="color: #334155; font-size: 14px;">आपके <strong>${purpose}</strong> के लिए सत्यापन कोड (OTP) नीचे दिया गया है:</p>
-        <div style="font-size: 30px; font-weight: bold; letter-spacing: 8px; color: #065f46; background: #ecfdf5; padding: 14px; text-align: center; border-radius: 10px; margin: 18px 0; border: 1px dashed #059669;">
-          ${otp}
-        </div>
-        <p style="font-size: 12px; color: #64748b; margin-bottom: 0;">यह OTP अगले 10 मिनट तक मान्य है।</p>
-      </div>
-    `,
-  });
-};
-
-// 1. नया मालिक रजिस्टर करने से पहले ईमेल इनबॉक्स पर OTP भेजें
-exports.sendRegisterEmailOtp = async (req, res) => {
+// 1. सिंपल मालिक रजिस्ट्रेशन (मोबाइल नंबर प्राइमरी)
+exports.registerOwner = async (req, res) => {
   try {
-    const { name, email, phone, password, district, block } = req.body;
+    const { name, phone, password, district, block } = req.body;
 
-    if (!name || !email || !phone || !password || !district || !block) {
-      return res.status(400).json({ success: false, message: 'कृपया सभी विवरण भरें।' });
+    if (!name || !phone || !password || !district || !block) {
+      return res.status(400).json({ success: false, message: 'कृपया सभी विवरण सही से भरें।' });
     }
 
-    const cleanEmail = email.trim().toLowerCase();
-    const existing = await Owner.findOne({ email: cleanEmail });
+    const cleanPhone = phone.trim();
+    if (cleanPhone.length !== 10) {
+      return res.status(400).json({ success: false, message: 'कृपया 10 अंकों का सही मोबाइल नंबर दर्ज करें।' });
+    }
+
+    const existing = await Owner.findOne({ phone: cleanPhone });
     if (existing) {
-      return res.status(400).json({ success: false, message: 'यह ईमेल आईडी पहले से पंजीकृत है।' });
+      return res.status(400).json({ success: false, message: 'यह मोबाइल नंबर पहले से पंजीकृत है। कृपया लॉगिन करें।' });
     }
 
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-
-    await sendEmailOtp(cleanEmail, otp, 'नया खाता पंजीकरण');
-
-    pendingRegistrations.set(cleanEmail, {
-      name,
-      email: cleanEmail,
-      phone: phone.trim(),
+    const owner = await Owner.create({
+      name: name.trim(),
+      phone: cleanPhone,
       password,
       district,
-      block,
-      otp,
-      expiresAt: Date.now() + 10 * 60 * 1000,
+      block: block.trim(),
     });
-
-    res.status(200).json({
-      success: true,
-      message: `आपके ईमेल (${cleanEmail}) पर 6-अंकों का सत्यापन OTP भेज दिया गया है। (Spam फ़ोल्डर भी जाँच लें)`,
-    });
-  } catch (error) {
-    console.error('Register OTP Email Error:', error);
-    res.status(500).json({ success: false, message: `ईमेल भेजने में त्रुटि: ${error.message}` });
-  }
-};
-
-// 2. ईमेल OTP सत्यापित करके मालिक का खाता बनाएँ
-exports.verifyAndRegisterOwner = async (req, res) => {
-  try {
-    const { email, otp } = req.body;
-    const cleanEmail = email.trim().toLowerCase();
-
-    const record = pendingRegistrations.get(cleanEmail);
-    if (!record) {
-      return res.status(400).json({ success: false, message: 'पंजीकरण सत्र समाप्त हो गया है। कृपया पुनः प्रयास करें।' });
-    }
-
-    if (Date.now() > record.expiresAt) {
-      pendingRegistrations.delete(cleanEmail);
-      return res.status(400).json({ success: false, message: 'OTP की समय-सीमा समाप्त हो गई है। नया OTP मँगाएँ।' });
-    }
-
-    if (record.otp !== otp.trim()) {
-      return res.status(400).json({ success: false, message: 'गलत OTP दर्ज किया गया है।' });
-    }
-
-    let owner = await Owner.findOne({ phone: record.phone });
-
-    if (owner) {
-      owner.name = record.name;
-      owner.email = record.email;
-      owner.password = record.password;
-      owner.district = record.district;
-      owner.block = record.block;
-      owner.isEmailVerified = true;
-      await owner.save();
-    } else {
-      owner = await Owner.create({
-        name: record.name,
-        email: record.email,
-        phone: record.phone,
-        password: record.password,
-        district: record.district,
-        block: record.block,
-        isEmailVerified: true,
-      });
-    }
-
-    pendingRegistrations.delete(cleanEmail);
 
     res.status(201).json({
       success: true,
-      message: 'ईमेल सत्यापन और पंजीकरण सफल रहा!',
+      message: 'पंजीकरण सफल रहा!',
       data: {
         _id: owner._id,
         name: owner.name,
-        email: owner.email,
         phone: owner.phone,
         district: owner.district,
         block: owner.block,
@@ -146,18 +46,18 @@ exports.verifyAndRegisterOwner = async (req, res) => {
   }
 };
 
-// 3. मालिक लॉगिन
+// 2. मालिक लॉगिन (मोबाइल नंबर और पासवर्ड से)
 exports.loginOwner = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { phone, password } = req.body;
 
-    if (!email || !password) {
-      return res.status(400).json({ success: false, message: 'ईमेल और पासवर्ड दर्ज करें।' });
+    if (!phone || !password) {
+      return res.status(400).json({ success: false, message: 'मोबाइल नंबर और पासवर्ड दर्ज करें।' });
     }
 
-    const owner = await Owner.findOne({ email: email.trim().toLowerCase() });
+    const owner = await Owner.findOne({ phone: phone.trim() });
     if (!owner || owner.password !== password) {
-      return res.status(401).json({ success: false, message: 'गलत ईमेल आईडी या पासवर्ड।' });
+      return res.status(401).json({ success: false, message: 'गलत मोबाइल नंबर या पासवर्ड।' });
     }
 
     res.status(200).json({
@@ -166,7 +66,6 @@ exports.loginOwner = async (req, res) => {
       data: {
         _id: owner._id,
         name: owner.name,
-        email: owner.email,
         phone: owner.phone,
         district: owner.district,
         block: owner.block,
@@ -177,48 +76,44 @@ exports.loginOwner = async (req, res) => {
   }
 };
 
-// 4. पासवर्ड भूलने पर सीधे ईमेल इनबॉक्स पर OTP भेजें
-exports.sendForgotPasswordEmailOtp = async (req, res) => {
+// 3. पासवर्ड भूलने पर स्क्रीन OTP जनरेट करें
+exports.sendForgotPasswordOtp = async (req, res) => {
   try {
-    const { email } = req.body;
-    if (!email) {
-      return res.status(400).json({ success: false, message: 'कृपया अपनी पंजीकृत ईमेल आईडी दर्ज करें।' });
+    const { phone } = req.body;
+    if (!phone || phone.trim().length !== 10) {
+      return res.status(400).json({ success: false, message: 'कृपया अपना 10 अंकों का पंजीकृत मोबाइल नंबर दर्ज करें।' });
     }
 
-    const cleanEmail = email.trim().toLowerCase();
-    const owner = await Owner.findOne({ email: cleanEmail });
+    const owner = await Owner.findOne({ phone: phone.trim() });
     if (!owner) {
-      return res.status(404).json({ success: false, message: 'यह ईमेल आईडी मालिक पोर्टल पर पंजीकृत नहीं है।' });
+      return res.status(404).json({ success: false, message: 'यह मोबाइल नंबर मालिक पोर्टल पर पंजीकृत नहीं है।' });
     }
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-
-    await sendEmailOtp(cleanEmail, otp, 'पासवर्ड रीसेट');
-
     owner.resetOtp = otp;
     owner.resetOtpExpiry = new Date(Date.now() + 10 * 60 * 1000);
     await owner.save();
 
     res.status(200).json({
       success: true,
-      message: `आपके ईमेल (${cleanEmail}) पर पासवर्ड रीसेट OTP भेज दिया गया है।`,
+      message: `पंजीकृत नंबर ${phone} के लिए OTP तैयार हो गया है।`,
+      demoOtp: otp,
     });
   } catch (error) {
-    console.error('Forgot Password OTP Email Error:', error);
-    res.status(500).json({ success: false, message: `ईमेल भेजने में त्रुटि: ${error.message}` });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
-// 5. ईमेल OTP वेरिफाई करके नया पासवर्ड सेट करें
-exports.resetOwnerPasswordByEmail = async (req, res) => {
+// 4. स्क्रीन OTP सत्यापित करके नया पासवर्ड सेट करें
+exports.resetOwnerPassword = async (req, res) => {
   try {
-    const { email, otp, newPassword } = req.body;
+    const { phone, otp, newPassword } = req.body;
 
-    if (!email || !otp || !newPassword) {
-      return res.status(400).json({ success: false, message: 'ईमेल, OTP और नया पासवर्ड सभी आवश्यक हैं।' });
+    if (!phone || !otp || !newPassword) {
+      return res.status(400).json({ success: false, message: 'मोबाइल नंबर, OTP और नया पासवर्ड सभी आवश्यक हैं।' });
     }
 
-    const owner = await Owner.findOne({ email: email.trim().toLowerCase() });
+    const owner = await Owner.findOne({ phone: phone.trim() });
     if (!owner) {
       return res.status(404).json({ success: false, message: 'मालिक का खाता नहीं मिला।' });
     }
@@ -238,14 +133,14 @@ exports.resetOwnerPasswordByEmail = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: 'पासवर्ड सफलतापूर्वक बदल दिया गया है! अब आप लॉगिन कर सकते हैं।',
+      message: 'पासवर्ड सफलतापूर्वक बदल दिया गया है! अब आप नए पासवर्ड से लॉगिन कर सकते हैं।',
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };
 
-// 6. मालिक की मशीनों के किसान अनुरोध व हिस्ट्री
+// 5. मालिक की मशीनों के किसान अनुरोध व हिस्ट्री
 exports.getOwnerBookings = async (req, res) => {
   try {
     const { phone } = req.params;

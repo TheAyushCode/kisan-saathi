@@ -48,14 +48,9 @@ export const createStorage = async (storageData) => {
   return response.data;
 };
 
-// ओनर ईमेल वेरिफिकेशन, लॉगिन, पासवर्ड रीसेट एवं डैशबोर्ड API
-export const sendRegisterEmailOtpApi = async (data) => {
-  const response = await API.post('/owners/register/send-otp', data);
-  return response.data;
-};
-
-export const verifyAndRegisterOwnerApi = async (data) => {
-  const response = await API.post('/owners/register/verify', data);
+// ओनर सिंपल रजिस्ट्रेशन, लॉगिन, स्क्रीन OTP पासवर्ड रीसेट एवं डैशबोर्ड API
+export const registerOwnerApi = async (data) => {
+  const response = await API.post('/owners/register', data);
   return response.data;
 };
 
@@ -64,12 +59,12 @@ export const loginOwnerApi = async (data) => {
   return response.data;
 };
 
-export const sendOwnerEmailOtpApi = async (email) => {
-  const response = await API.post('/owners/forgot-password/send-otp', { email });
+export const sendOwnerOtpApi = async (phone) => {
+  const response = await API.post('/owners/forgot-password/send-otp', { phone });
   return response.data;
 };
 
-export const resetOwnerPasswordByEmailApi = async (data) => {
+export const resetOwnerPasswordApi = async (data) => {
   const response = await API.post('/owners/forgot-password/reset', data);
   return response.data;
 };
