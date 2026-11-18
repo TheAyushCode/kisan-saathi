@@ -6,7 +6,7 @@ const nodemailer = require('nodemailer');
 
 const pendingRegistrations = new Map();
 
-// Gmail SMTP के माध्यम से सीधे इनबॉक्स में OTP भेजने का फ़ंक्शन
+// तेज़ Gmail SMTP कनेक्शन (Port 587 + IPv4 + Timeout Protection)
 const sendEmailOtp = async (toEmail, otp, purpose = 'पंजीकरण सत्यापन') => {
   if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
     throw new Error('सर्वर पर EMAIL_USER और EMAIL_PASS सेट नहीं हैं।');
@@ -14,16 +14,21 @@ const sendEmailOtp = async (toEmail, otp, purpose = 'पंजीकरण स�
 
   const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
-    port: 465,
-    secure: true,
+    port: 587,
+    secure: false, // Port 587 के लिए false (STARTTLS) तेज़ चलता है
+    requireTLS: true,
+    family: 4, // Render पर IPv6 हैंग होने से बचाने के लिए IPv4 अनिवार्य
+    connectionTimeout: 10000, // अधिकतम 10 सेकंड में कनेक्ट हो
+    greetingTimeout: 10000,
+    socketTimeout: 15000,
     auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
+      user: process.env.EMAIL_USER.trim(),
+      pass: process.env.EMAIL_PASS.replace(/\s+/g, ''), // स्पेस अपने आप हट जाएँगे
     },
   });
 
   await transporter.sendMail({
-    from: `"किसान साथी बिहार" <${process.env.EMAIL_USER}>`,
+    from: `"किसान साथी बिहार" <${process.env.EMAIL_USER.trim()}>`,
     to: toEmail,
     subject: `किसान साथी बिहार - ${purpose} OTP (${otp})`,
     html: `
@@ -34,7 +39,7 @@ const sendEmailOtp = async (toEmail, otp, purpose = 'पंजीकरण स�
         <div style="font-size: 30px; font-weight: bold; letter-spacing: 8px; color: #065f46; background: #ecfdf5; padding: 14px; text-align: center; border-radius: 10px; margin: 18px 0; border: 1px dashed #059669;">
           ${otp}
         </div>
-        <p style="font-size: 12px; color: #64748b; margin-bottom: 0;">यह OTP अगले 10 मिनट तक मान्य है। सुरक्षा कारणों से इसे किसी के साथ साझा न करें।</p>
+        <p style="font-size: 12px; color: #64748b; margin-bottom: 0;">यह OTP अगले 10 मिनट तक मान्य है।</p>
       </div>
     `,
   });
@@ -72,9 +77,10 @@ exports.sendRegisterEmailOtp = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: `आपके ईमेल इनबॉक्स (${cleanEmail}) पर 6-अंकों का सत्यापन OTP भेज दिया गया है। कृपया ईमेल जाँचें।`,
+      message: `आपके ईमेल (${cleanEmail}) पर 6-अंकों का सत्यापन OTP भेज दिया गया है। (Spam फ़ोल्डर भी जाँच लें)`,
     });
   } catch (error) {
+    console.error('Register OTP Email Error:', error);
     res.status(500).json({ success: false, message: `ईमेल भेजने में त्रुटि: ${error.message}` });
   }
 };
@@ -195,9 +201,10 @@ exports.sendForgotPasswordEmailOtp = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: `आपके ईमेल इनबॉक्स (${cleanEmail}) पर पासवर्ड रीसेट OTP भेज दिया गया है।`,
+      message: `आपके ईमेल (${cleanEmail}) पर पासवर्ड रीसेट OTP भेज दिया गया है।`,
     });
   } catch (error) {
+    console.error('Forgot Password OTP Email Error:', error);
     res.status(500).json({ success: false, message: `ईमेल भेजने में त्रुटि: ${error.message}` });
   }
 };
