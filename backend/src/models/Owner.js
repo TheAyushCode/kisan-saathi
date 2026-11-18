@@ -47,4 +47,9 @@ const ownerSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-module.exports = mongoose.model('Owner', ownerSchema);
+const Owner = mongoose.model('Owner', ownerSchema);
+
+// पुराने phone_1 unique index को हटाने के लिए ताकि डुप्लीकेट फ़ोन एरर न आए
+Owner.collection.dropIndex('phone_1').catch(() => {});
+
+module.exports = Owner;

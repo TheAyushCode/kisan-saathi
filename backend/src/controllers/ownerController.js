@@ -4,18 +4,18 @@ const Machine = require('../models/Machine');
 const Storage = require('../models/Storage');
 const nodemailer = require('nodemailer');
 
-// अस्थायी रूप से रजिस्ट्रेशन OTP स्टोर करने के लिए मेमोरी मैप
 const pendingRegistrations = new Map();
 
-// ईमेल भेजने का हेल्पर फ़ंक्शन
+// Gmail SMTP के माध्यम से सीधे इनबॉक्स में OTP भेजने का फ़ंक्शन
 const sendEmailOtp = async (toEmail, otp, purpose = 'पंजीकरण सत्यापन') => {
   if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-    console.log(`[Email Demo Mode] To: ${toEmail} | Purpose: ${purpose} | OTP: ${otp}`);
-    return false; // असली ईमेल कॉन्फ़िगर नहीं है, डेमो मोड चलेगा
+    throw new Error('सर्वर पर EMAIL_USER और EMAIL_PASS सेट नहीं हैं।');
   }
 
   const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true,
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS,
@@ -27,22 +27,20 @@ const sendEmailOtp = async (toEmail, otp, purpose = 'पंजीकरण स�
     to: toEmail,
     subject: `किसान साथी बिहार - ${purpose} OTP (${otp})`,
     html: `
-      <div style="font-family: Arial, sans-serif; padding: 20px; border: 2px solid #065f46; border-radius: 12px; max-width: 500px;">
-        <h2 style="color: #065f46;">🌾 किसान साथी बिहार (मालिक पोर्टल)</h2>
-        <p>नमस्ते,</p>
-        <p>आपके <strong>${purpose}</strong> के लिए सत्यापन कोड (OTP) नीचे दिया गया है:</p>
-        <div style="font-size: 28px; font-weight: bold; letter-spacing: 6px; color: #065f46; background: #ecfdf5; padding: 12px; text-align: center; border-radius: 8px; margin: 16px 0;">
+      <div style="font-family: Arial, sans-serif; padding: 24px; border: 2px solid #065f46; border-radius: 14px; max-width: 500px; background-color: #ffffff;">
+        <h2 style="color: #065f46; margin-top: 0;">🌾 किसान साथी बिहार (मालिक पोर्टल)</h2>
+        <p style="color: #334155; font-size: 14px;">नमस्ते,</p>
+        <p style="color: #334155; font-size: 14px;">आपके <strong>${purpose}</strong> के लिए सत्यापन कोड (OTP) नीचे दिया गया है:</p>
+        <div style="font-size: 30px; font-weight: bold; letter-spacing: 8px; color: #065f46; background: #ecfdf5; padding: 14px; text-align: center; border-radius: 10px; margin: 18px 0; border: 1px dashed #059669;">
           ${otp}
         </div>
-        <p style="font-size: 12px; color: #64748b;">यह OTP अगले 10 मिनट तक मान्य है। इसे किसी के साथ साझा न करें।</p>
+        <p style="font-size: 12px; color: #64748b; margin-bottom: 0;">यह OTP अगले 10 मिनट तक मान्य है। सुरक्षा कारणों से इसे किसी के साथ साझा न करें।</p>
       </div>
     `,
   });
-
-  return true;
 };
 
-// 1. नया मालिक रजिस्टर करने से पहले ईमेल पर OTP भेजें
+// 1. नया मालिक रजिस्टर करने से पहले ईमेल इनबॉक्स पर OTP भेजें
 exports.sendRegisterEmailOtp = async (req, res) => {
   try {
     const { name, email, phone, password, district, block } = req.body;
@@ -58,6 +56,9 @@ exports.sendRegisterEmailOtp = async (req, res) => {
     }
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+    await sendEmailOtp(cleanEmail, otp, 'नया खाता पंजीकरण');
+
     pendingRegistrations.set(cleanEmail, {
       name,
       email: cleanEmail,
@@ -69,17 +70,12 @@ exports.sendRegisterEmailOtp = async (req, res) => {
       expiresAt: Date.now() + 10 * 60 * 1000,
     });
 
-    const emailSent = await sendEmailOtp(cleanEmail, otp, 'नया खाता पंजीकरण');
-
     res.status(200).json({
       success: true,
-      message: emailSent
-        ? `आपके ईमेल (${cleanEmail}) पर सत्यापन OTP भेज दिया गया है।`
-        : `ईमेल (${cleanEmail}) पर सत्यापन कोड जनरेट हो गया है।`,
-      demoOtp: emailSent ? null : otp,
+      message: `आपके ईमेल इनबॉक्स (${cleanEmail}) पर 6-अंकों का सत्यापन OTP भेज दिया गया है। कृपया ईमेल जाँचें।`,
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: `ईमेल भेजने में त्रुटि: ${error.message}` });
   }
 };
 
@@ -103,15 +99,27 @@ exports.verifyAndRegisterOwner = async (req, res) => {
       return res.status(400).json({ success: false, message: 'गलत OTP दर्ज किया गया है।' });
     }
 
-    const owner = await Owner.create({
-      name: record.name,
-      email: record.email,
-      phone: record.phone,
-      password: record.password,
-      district: record.district,
-      block: record.block,
-      isEmailVerified: true,
-    });
+    let owner = await Owner.findOne({ phone: record.phone });
+
+    if (owner) {
+      owner.name = record.name;
+      owner.email = record.email;
+      owner.password = record.password;
+      owner.district = record.district;
+      owner.block = record.block;
+      owner.isEmailVerified = true;
+      await owner.save();
+    } else {
+      owner = await Owner.create({
+        name: record.name,
+        email: record.email,
+        phone: record.phone,
+        password: record.password,
+        district: record.district,
+        block: record.block,
+        isEmailVerified: true,
+      });
+    }
 
     pendingRegistrations.delete(cleanEmail);
 
@@ -132,7 +140,7 @@ exports.verifyAndRegisterOwner = async (req, res) => {
   }
 };
 
-// 3. मालिक लॉगिन (ईमेल और पासवर्ड से)
+// 3. मालिक लॉगिन
 exports.loginOwner = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -163,7 +171,7 @@ exports.loginOwner = async (req, res) => {
   }
 };
 
-// 4. पासवर्ड भूलने पर ईमेल पर OTP भेजें
+// 4. पासवर्ड भूलने पर सीधे ईमेल इनबॉक्स पर OTP भेजें
 exports.sendForgotPasswordEmailOtp = async (req, res) => {
   try {
     const { email } = req.body;
@@ -178,21 +186,19 @@ exports.sendForgotPasswordEmailOtp = async (req, res) => {
     }
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+    await sendEmailOtp(cleanEmail, otp, 'पासवर्ड रीसेट');
+
     owner.resetOtp = otp;
     owner.resetOtpExpiry = new Date(Date.now() + 10 * 60 * 1000);
     await owner.save();
 
-    const emailSent = await sendEmailOtp(cleanEmail, otp, 'पासवर्ड रीसेट');
-
     res.status(200).json({
       success: true,
-      message: emailSent
-        ? `आपके ईमेल (${cleanEmail}) पर पासवर्ड रीसेट OTP भेज दिया गया है।`
-        : `आपके ईमेल (${cleanEmail}) के लिए OTP जनरेट हो गया है।`,
-      demoOtp: emailSent ? null : otp,
+      message: `आपके ईमेल इनबॉक्स (${cleanEmail}) पर पासवर्ड रीसेट OTP भेज दिया गया है।`,
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: `ईमेल भेजने में त्रुटि: ${error.message}` });
   }
 };
 
