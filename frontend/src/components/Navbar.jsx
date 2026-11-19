@@ -7,6 +7,7 @@ import {
   ArrowLeft,
   ShieldCheck,
   TrendingUp,
+  Landmark,
 } from 'lucide-react';
 
 const Navbar = ({ activeTab, setActiveTab, onOpenCalculator }) => {
@@ -76,6 +77,18 @@ const Navbar = ({ activeTab, setActiveTab, onOpenCalculator }) => {
             >
               <TrendingUp className="w-4 h-4 text-amber-300" />
               <span>मंडी भाव</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('subsidy')}
+              className={`flex items-center space-x-1 px-2.5 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors shrink-0 ${
+                activeTab === 'subsidy'
+                  ? 'bg-emerald-950 text-amber-300 shadow-inner'
+                  : 'text-emerald-100 hover:bg-emerald-700'
+              }`}
+            >
+              <Landmark className="w-4 h-4 text-amber-300" />
+              <span>सब्सिडी</span>
             </button>
 
             <button

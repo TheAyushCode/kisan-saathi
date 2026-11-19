@@ -7,6 +7,7 @@ import BookingModal from './components/BookingModal';
 import MyBookings from './components/MyBookings';
 import OwnerDashboard from './components/OwnerDashboard';
 import MandiPrices from './components/MandiPrices';
+import SubsidyCalculator from './components/SubsidyCalculator';
 import AddListingModal from './components/AddListingModal';
 import LandCalculatorModal from './components/LandCalculatorModal';
 import Footer from './components/Footer';
@@ -140,20 +141,23 @@ function App() {
           </div>
         )}
 
-        {/* View 1: Mandi Prices & Smart Storage Advisory */}
+        {/* View 1: Bihar Govt Subsidy Calculator (SMAM / CHC) */}
+        {activeTab === 'subsidy' && <SubsidyCalculator />}
+
+        {/* View 2: Mandi Prices & Smart Storage Advisory */}
         {activeTab === 'mandi' && (
           <MandiPrices onNavigateToStorage={handleNavigateToStorageFromMandi} />
         )}
 
-        {/* View 2: Farmer View */}
+        {/* View 3: Farmer View */}
         {activeTab === 'my-bookings' && <MyBookings />}
 
-        {/* View 3: Owner View */}
+        {/* View 4: Owner View */}
         {activeTab === 'owner-dashboard' && (
           <OwnerDashboard onOpenAddListing={() => setIsAddListingOpen(true)} />
         )}
 
-        {/* View 4: Marketplace View */}
+        {/* View 5: Marketplace View */}
         {(activeTab === 'machines' || activeTab === 'storage') && (
           <>
             <div className="bg-emerald-950/65 backdrop-blur-md rounded-3xl shadow-xl mb-6 border border-white/20 p-6 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-white">
