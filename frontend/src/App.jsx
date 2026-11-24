@@ -3,6 +3,7 @@ import Navbar from './components/Navbar';
 import MachineCard from './components/MachineCard';
 import StorageCard from './components/StorageCard';
 import FilterBar from './components/FilterBar';
+import VoiceSearchBar from './components/VoiceSearchBar';
 import BookingModal from './components/BookingModal';
 import MyBookings from './components/MyBookings';
 import OwnerDashboard from './components/OwnerDashboard';
@@ -61,6 +62,13 @@ function App() {
   const handleResetFilters = () => {
     setSelectedDistrict('');
     setSelectedCategory('');
+  };
+
+  // वॉइस सर्च से मिले कमांड को लागू करें
+  const handleVoiceCommand = ({ district, tab, category }) => {
+    if (tab) setActiveTab(tab);
+    if (district) setSelectedDistrict(district);
+    if (category) setSelectedCategory(category);
   };
 
   const handleNavigateToStorageFromMandi = (district) => {
@@ -126,6 +134,9 @@ function App() {
       />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
+        {/* Global Voice Search & Regional Dialect Bar */}
+        <VoiceSearchBar onVoiceCommand={handleVoiceCommand} />
+
         {successToast && (
           <div className="mb-6 bg-emerald-600/95 backdrop-blur-md text-white px-4 py-3 rounded-2xl shadow-xl flex items-center justify-between text-sm animate-in fade-in">
             <div className="flex items-center gap-2">
