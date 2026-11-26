@@ -9,6 +9,7 @@ import MyBookings from './components/MyBookings';
 import OwnerDashboard from './components/OwnerDashboard';
 import MandiPrices from './components/MandiPrices';
 import SubsidyCalculator from './components/SubsidyCalculator';
+import ImpactDashboard from './components/ImpactDashboard';
 import AddListingModal from './components/AddListingModal';
 import LandCalculatorModal from './components/LandCalculatorModal';
 import Footer from './components/Footer';
@@ -64,7 +65,6 @@ function App() {
     setSelectedCategory('');
   };
 
-  // वॉइस सर्च से मिले कमांड को लागू करें
   const handleVoiceCommand = ({ district, tab, category }) => {
     if (tab) setActiveTab(tab);
     if (district) setSelectedDistrict(district);
@@ -152,23 +152,26 @@ function App() {
           </div>
         )}
 
-        {/* View 1: Bihar Govt Subsidy Calculator (SMAM / CHC) */}
+        {/* View 1: Startup Bihar Impact Dashboard */}
+        {activeTab === 'impact' && <ImpactDashboard />}
+
+        {/* View 2: Bihar Govt Subsidy Calculator (SMAM / CHC) */}
         {activeTab === 'subsidy' && <SubsidyCalculator />}
 
-        {/* View 2: Mandi Prices & Smart Storage Advisory */}
+        {/* View 3: Mandi Prices & Smart Storage Advisory */}
         {activeTab === 'mandi' && (
           <MandiPrices onNavigateToStorage={handleNavigateToStorageFromMandi} />
         )}
 
-        {/* View 3: Farmer View */}
+        {/* View 4: Farmer View */}
         {activeTab === 'my-bookings' && <MyBookings />}
 
-        {/* View 4: Owner View */}
+        {/* View 5: Owner View */}
         {activeTab === 'owner-dashboard' && (
           <OwnerDashboard onOpenAddListing={() => setIsAddListingOpen(true)} />
         )}
 
-        {/* View 5: Marketplace View */}
+        {/* View 6: Marketplace View */}
         {(activeTab === 'machines' || activeTab === 'storage') && (
           <>
             <div className="bg-emerald-950/65 backdrop-blur-md rounded-3xl shadow-xl mb-6 border border-white/20 p-6 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-white">

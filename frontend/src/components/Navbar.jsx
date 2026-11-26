@@ -8,6 +8,7 @@ import {
   ShieldCheck,
   TrendingUp,
   Landmark,
+  Award,
 } from 'lucide-react';
 
 const Navbar = ({ activeTab, setActiveTab, onOpenCalculator }) => {
@@ -113,6 +114,18 @@ const Navbar = ({ activeTab, setActiveTab, onOpenCalculator }) => {
             >
               <ShieldCheck className="w-4 h-4 text-amber-300" />
               <span>मालिक पोर्टल</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('impact')}
+              className={`flex items-center space-x-1 px-2.5 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors shrink-0 ${
+                activeTab === 'impact'
+                  ? 'bg-emerald-950 text-amber-300 shadow-inner'
+                  : 'text-emerald-100 hover:bg-emerald-700'
+              }`}
+            >
+              <Award className="w-4 h-4 text-amber-300" />
+              <span>इम्पैक्ट</span>
             </button>
           </nav>
 
