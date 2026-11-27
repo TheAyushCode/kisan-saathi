@@ -4,6 +4,7 @@ import MachineCard from './components/MachineCard';
 import StorageCard from './components/StorageCard';
 import FilterBar from './components/FilterBar';
 import VoiceSearchBar from './components/VoiceSearchBar';
+import MobileAppBanner from './components/MobileAppBanner';
 import BookingModal from './components/BookingModal';
 import MyBookings from './components/MyBookings';
 import OwnerDashboard from './components/OwnerDashboard';
@@ -133,7 +134,10 @@ function App() {
         onOpenCalculator={() => setIsCalculatorOpen(true)}
       />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 relative z-10">
+        {/* PWA Mobile App Install & WhatsApp Share Bar */}
+        <MobileAppBanner />
+
         {/* Global Voice Search & Regional Dialect Bar */}
         <VoiceSearchBar onVoiceCommand={handleVoiceCommand} />
 

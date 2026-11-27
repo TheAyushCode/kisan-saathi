@@ -1,0 +1,22 @@
+{
+  "short_name": "किसान साथी",
+  "name": "किसान साथी बिहार - ई-साझा कृषि एवं भंडारण मंच",
+  "description": "बिहार के 38 ज़िलों के किसानों के लिए कृषि यंत्र किराया, PACS गोदाम, मंडी भाव और सरकारी सब्सिडी मंच",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/2329/2329087.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/2329/2329087.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#022c22",
+  "theme_color": "#065f46",
+  "display": "standalone",
+  "orientation": "portrait"
+}
